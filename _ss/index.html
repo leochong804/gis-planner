@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>East Kowloon Harbourfront Trail GIS Planner</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Google Fonts for Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Sidebar Panel -->
+        <aside id="sidebar" class="glass-panel">
+            <header style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>GIS Planner</h1>
+                    <p>East Kowloon Harbourfront</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="btn-fit-view" title="Fit Default View">🎯</button>
+                    <button class="btn-icon" id="btn-export-json" title="Save Project (JSON)">💾</button>
+                    <button class="btn-icon" id="btn-import-json" title="Load Project (JSON)">📂</button>
+                    <button class="btn-icon" id="btn-export-csv" title="Export Coordinates (CSV)">📊</button>
+                    <input type="file" id="file-import" accept=".json" style="display: none;">
+                </div>
+            </header>
+
+            <div class="control-group">
+                <label>Active Route</label>
+                <div style="display: flex; gap: 8px;">
+                    <select id="route-selector" class="form-select" style="flex: 1;">
+                        <option value="Route 1">Route 1</option>
+                    </select>
+                    <button id="btn-new-route" class="btn btn-secondary" style="width: auto;">+ New</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Map Labels Language</label>
+                <div class="toggle-switch">
+                    <button id="lang-en" class="active">English</button>
+                    <button id="lang-tc">繁體中文</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Dimensions Visibility</label>
+                <div class="toggle-switch">
+                    <button id="dim-auto" class="active" onclick="setDimensionMode('auto')">Auto</button>
+                    <button id="dim-on" onclick="setDimensionMode('on')">Always</button>
+                    <button id="dim-off" onclick="setDimensionMode('off')">Off</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Measurement Type</label>
+                <div class="toggle-switch">
+                    <button id="dim-mode-segment" class="active" onclick="setDimensionMeasureMode('segment')">Segment</button>
+                    <button id="dim-mode-cumulative" onclick="setDimensionMeasureMode('cumulative')">Cumulative</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Route Line Color</label>
+                <div class="color-picker-container">
+                    <button class="color-swatch active" style="background-color: #ef4444;" data-color="#ef4444" title="Red"></button>
+                    <button class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6" title="Blue"></button>
+                    <button class="color-swatch" style="background-color: #10b981;" data-color="#10b981" title="Green"></button>
+                    <button class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b" title="Orange"></button>
+                    <button class="color-swatch" style="background-color: #8b5cf6;" data-color="#8b5cf6" title="Purple"></button>
+                    <input type="color" id="line-color" value="#ef4444" title="Custom Color">
+                </div>
+            </div>
+
+            <div class="control-group" style="margin-top: 4px;">
+                <label style="display: flex; justify-content: space-between;">
+                    Line Thickness
+                    <span id="thickness-val" style="color: var(--primary);">4px</span>
+                </label>
+                <input type="range" id="line-thickness" min="1" max="12" value="4" style="width: 100%; accent-color: var(--primary); cursor: pointer;">
+            </div>
+
+            <div class="actions" style="display: flex; gap: 8px;">
+                <button id="btn-undo" class="btn btn-secondary" disabled>Undo</button>
+                <button id="btn-redo" class="btn btn-secondary" disabled>Redo</button>
+            </div>
+
+            <div class="coordinate-list-container">
+                <h3>Saved Coordinates</h3>
+                <div class="table-container">
+                    <table id="coordinate-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Lat, Lng</th>
+                                <th>Dist (m)</th>
+                                <th>Color</th>
+                                <th>Act</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coordinate-list">
+                            <!-- Rows will be appended here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-state">Click on the map to add points.</div>
+            </div>
+            
+            <div class="total-distance-box">
+                <div>Total Distance: <span id="total-distance">0</span> m</div>
+                <div id="color-breakdown" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 6px; font-size: 0.85em; font-weight: 500; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px;">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map"></main>
+    </div>
+
+    <!-- Floating Color Popup -->
+    <div id="color-popup" style="display: none; position: absolute; z-index: 2000;">
+        <div class="color-picker-container" style="background: white; padding: 8px; border-radius: 8px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); gap: 6px;">
+            <button class="color-swatch popup-swatch" style="background-color: #ef4444;" data-color="#ef4444"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #10b981;" data-color="#10b981"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #8b5cf6;" data-color="#8b5cf6"></button>
+            <input type="color" id="popup-color-input" title="Custom Color">
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js"></script>
+</body>
+</html>

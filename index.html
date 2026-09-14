@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#10b981">
+    <title>East Kowloon Harbourfront Trail GIS Planner</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Turf.js for Spatial Analysis -->
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+    <!-- Google Fonts for Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Mobile Floating Menu Toggle -->
+        <button id="btn-mobile-sidebar-toggle" class="btn-mobile-toggle" title="Toggle Menu">
+            <span>☰</span>
+            <span style="font-size: 0.8rem; font-weight: 600;">Planner</span>
+        </button>
+
+        <!-- Mobile Backdrop -->
+        <div id="sidebar-backdrop"></div>
+
+        <!-- Floating Key Plan -->
+        <div id="keyplan-container" class="glass-panel" style="display: none; position: absolute; top: 20px; right: 20px; z-index: 2000; width: 250px; height: 250px; border-radius: 8px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-color); flex-direction: column;">
+            <div id="keyplan-header" style="background: rgba(255,255,255,0.9); padding: 4px 8px; cursor: grab; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; font-weight: 600;">
+                <span>Key Plan</span>
+                <button id="btn-close-keyplan" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem; line-height: 1;">&times;</button>
+            </div>
+            <div id="keyplan-map" style="flex: 1; width: 100%; background: #e5e7eb;"></div>
+        </div>
+        <!-- Sidebar Panel -->
+        <aside id="sidebar" class="glass-panel">
+            <header style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="display: flex; align-items: center; gap: 6px;">
+                        GIS Planner
+                    </h1>
+                    <p>East Kowloon Harbourfront</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" id="btn-locate-me" title="My Current Location (GPS)">📍</button>
+                    <button class="btn-icon" id="btn-fit-view" title="Fit Default View">🎯</button>
+                    <button class="btn-icon" id="btn-toggle-keyplan" title="Toggle Key Plan">🗺️</button>
+                    <button class="btn-icon" id="btn-export-json" title="Save Project (JSON)">💾</button>
+                    <button class="btn-icon" id="btn-import-json" title="Load Project (JSON)">📂</button>
+                    <button class="btn-icon" id="btn-unload-json" title="Unload Project (Clear)">🗑️</button>
+                    <button class="btn-icon" id="btn-export-csv" title="Export Coordinates (CSV)">📊</button>
+                    <button class="btn-icon" id="btn-screen-capture" title="Screen Capture">📸</button>
+                    <button class="btn-icon mobile-only" id="btn-close-sidebar" title="Close Menu" style="display: none; font-size: 1.3rem; color: var(--text-color); margin-left: 4px;">&times;</button>
+                    <input type="file" id="file-import" accept=".json" style="display: none;">
+                </div>
+            </header>
+
+            <div class="control-group">
+                <label>Active Route</label>
+                <div style="display: flex; gap: 8px;">
+                    <select id="route-selector" class="form-select" style="flex: 1;">
+                        <option value="Route 1">Route 1</option>
+                    </select>
+                    <button id="btn-new-route" class="btn btn-secondary" style="width: auto;">+ New</button>
+                    <button id="btn-analyze-conflicts" class="btn btn-secondary" style="width: auto;" title="Analyze Conflicted Land">🔍 Analyze</button>
+                </div>
+            </div>
+
+            <details class="settings-panel">
+                <summary>⚙️ Map & Display Settings</summary>
+                <div class="settings-content">
+                    <div class="control-group">
+                        <label>Reference Layers</label>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input type="checkbox" id="layer-lot">
+                        <span style="display: inline-block; width: 14px; height: 14px; background-color: rgba(173, 216, 230, 0.4); border: 2px solid #add8e6; border-radius: 2px;"></span>
+                        Lot Boundaries
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-left: 24px; font-size: 0.85em; color: var(--text-muted);">
+                        <input type="checkbox" id="layer-lot-name">
+                        Show Lot Names
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input type="checkbox" id="layer-gla">
+                        <span style="display: inline-block; width: 14px; height: 14px; background-color: rgba(254, 216, 177, 0.4); border: 2px solid #fed8b1; border-radius: 2px;"></span>
+                        Gov Land Allocation
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-left: 24px; font-size: 0.85em; color: var(--text-muted);">
+                        <input type="checkbox" id="layer-gla-name">
+                        Show GLA Names
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input type="checkbox" id="layer-stt">
+                        <span style="display: inline-block; width: 14px; height: 14px; background-color: rgba(222, 184, 135, 0.4); border: 2px solid #c19a6b; border-radius: 2px;"></span>
+                        Short Term Tenancy (STT)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-left: 24px; font-size: 0.85em; color: var(--text-muted);">
+                        <input type="checkbox" id="layer-stt-name">
+                        Show STT Names
+                    </label>
+                    <!-- OZP Statutory Plan Layers -->
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-top: 2px;">
+                        <input type="checkbox" id="layer-ozp-zone">
+                        <span style="display: inline-block; width: 14px; height: 14px; background-color: rgba(248, 152, 154, 0.6); border: 2px solid #f87578; border-radius: 2px;"></span>
+                        OZP Statutory Plan (Zones)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-left: 24px; font-size: 0.85em; color: var(--text-muted);">
+                        <input type="checkbox" id="layer-ozp-zone-name">
+                        Show OZP Zone Labels
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input type="checkbox" id="layer-ozp-plan">
+                        <span style="display: inline-block; width: 14px; height: 14px; background-color: transparent; border: 2px dashed #4b5563; border-radius: 2px;"></span>
+                        OZP Plan Boundaries
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-left: 24px; font-size: 0.85em; color: var(--text-muted);">
+                        <input type="checkbox" id="layer-ozp-plan-name">
+                        Show OZP Plan Names
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Inactive Routes</label>
+                <div class="toggle-switch">
+                    <button id="route-vis-faded" class="active">Faded</button>
+                    <button id="route-vis-solid">Solid</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Map Labels Language</label>
+                <div class="toggle-switch">
+                    <button id="lang-en" class="active">English</button>
+                    <button id="lang-tc">繁體中文</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Points Visibility</label>
+                <div class="toggle-switch">
+                    <button id="pts-auto" class="active">Auto</button>
+                    <button id="pts-on">Always</button>
+                    <button id="pts-off">Off</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Dimensions Visibility</label>
+                <div class="toggle-switch">
+                    <button id="dim-auto" class="active" onclick="setDimensionMode('auto')">Auto</button>
+                    <button id="dim-on" onclick="setDimensionMode('on')">Always</button>
+                    <button id="dim-off" onclick="setDimensionMode('off')">Off</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Measurement Type</label>
+                <div class="toggle-switch">
+                    <button id="dim-mode-segment" class="active" onclick="setDimensionMeasureMode('segment')">Segment</button>
+                    <button id="dim-mode-cumulative" onclick="setDimensionMeasureMode('cumulative')">Cumulative</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Route Line Color</label>
+                <div class="color-picker-container">
+                    <button class="color-swatch active" style="background-color: #ef4444;" data-color="#ef4444" title="Red"></button>
+                    <button class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6" title="Blue"></button>
+                    <button class="color-swatch" style="background-color: #10b981;" data-color="#10b981" title="Green"></button>
+                    <button class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b" title="Orange"></button>
+                    <button class="color-swatch" style="background-color: #8b5cf6;" data-color="#8b5cf6" title="Purple"></button>
+                    <input type="color" id="line-color" value="#ef4444" title="Custom Color">
+                </div>
+            </div>
+
+            <div class="control-group" style="margin-top: 4px;">
+                <label style="display: flex; justify-content: space-between;">
+                    Line Thickness
+                    <span id="thickness-val" style="color: var(--primary);">4px</span>
+                </label>
+                <input type="range" id="line-thickness" min="1" max="12" value="4" style="width: 100%; accent-color: var(--primary); cursor: pointer;">
+            </div>
+
+                </div>
+            </details>
+
+            <div class="actions" style="display: flex; gap: 8px;">
+                <button id="btn-undo" class="btn btn-secondary" disabled>Undo</button>
+                <button id="btn-redo" class="btn btn-secondary" disabled>Redo</button>
+            </div>
+
+            <details class="settings-panel">
+                <summary style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span>⚠️ Conflicted Land</span>
+                    <button id="btn-export-conflicts" class="btn-icon" title="Export Conflicts (CSV)" style="padding: 0 4px; font-size: 1rem; color: var(--text-color); display: none;">📥</button>
+                </summary>
+                <div class="settings-content" style="padding: 8px; max-height: 25vh;">
+                    <div class="table-container">
+                        <table id="conflict-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="conflict-list">
+                                <tr><td colspan="2" style="text-align:center; color: var(--text-muted);">Click 🔍 Analyze to check conflicts</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </details>
+
+            <div class="coordinate-list-container">
+                <h3>Saved Coordinates</h3>
+                <div class="table-container">
+                    <table id="coordinate-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Lat, Lng</th>
+                                <th>Dist (m)</th>
+                                <th>Color</th>
+                                <th>Act</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coordinate-list">
+                            <!-- Rows will be appended here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-state">Click on the map to add points.</div>
+            </div>
+            
+            <div class="total-distance-box">
+                <div>Total Distance: <span id="total-distance">0</span> m</div>
+                <div id="color-breakdown" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 6px; font-size: 0.85em; font-weight: 500; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px;">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map"></main>
+    </div>
+
+    <!-- Floating Color Popup -->
+    <div id="color-popup" style="display: none; position: absolute; z-index: 2000;">
+        <div class="color-picker-container" style="background: white; padding: 8px; border-radius: 8px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); gap: 6px;">
+            <button class="color-swatch popup-swatch" style="background-color: #ef4444;" data-color="#ef4444"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #10b981;" data-color="#10b981"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></button>
+            <button class="color-swatch popup-swatch" style="background-color: #8b5cf6;" data-color="#8b5cf6"></button>
+            <input type="color" id="popup-color-input" title="Custom Color">
+        </div>
+    </div>
+
+    <!-- Floating OZP Legend Panel -->
+    <div id="ozp-legend-container" class="glass-panel" style="display: none; position: absolute; bottom: 24px; right: 24px; z-index: 1000; width: 290px; max-height: 400px; border-radius: 8px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-color); flex-direction: column;">
+        <div id="ozp-legend-header" style="background: rgba(255,255,255,0.95); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600;">
+            <span style="display: flex; align-items: center; gap: 6px;">🗺️ Statutory Plan (OZP) Legend</span>
+            <button id="btn-close-ozp-legend" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.1rem; line-height: 1;" title="Close Legend">&times;</button>
+        </div>
+        <div id="ozp-legend-body" style="padding: 10px 12px; overflow-y: auto; max-height: 350px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.85);">
+            <!-- Populated dynamically by script.js -->
+        </div>
+    </div>
+
+    <!-- Global Loading Toast -->
+    <div id="loading-toast" style="display: none; position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 3000; background: rgba(15, 23, 42, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; box-shadow: var(--shadow-lg); backdrop-filter: blur(8px); pointer-events: none; align-items: center; gap: 8px;">
+        <span class="spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #10b981; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+        <span id="loading-toast-text">Loading layer...</span>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet Rotate Plugin -->
+    <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
+    <!-- Leaflet Simple Map Screenshoter -->
+    <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
+    <script src="script.js"></script>
+</body>
+</html>
