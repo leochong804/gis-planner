@@ -1,0 +1,776 @@
+<title>HKIE Structural 備考</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: engineering computation pad. Each panel is a calc sheet with a narrow "Ref." margin, on a faint squared grid. */
+:root {
+  --paper: #f2f5ec;
+  --sheet: #fbfcf8;
+  --grid: #dfe7d6;
+  --rule: #c6d2bb;
+  --ink: #1d2a22;
+  --ink-2: #4c5c50;
+  --pen: #24428f;
+  --pen-soft: #e3e8f6;
+  --ok: #2f7a45;
+  --ok-soft: #dcefdf;
+  --warn: #9a6a00;
+  --warn-soft: #f6ead0;
+  --bad: #a8352b;
+  --bad-soft: #f6dcd8;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Noto Sans TC", sans-serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111813; --sheet: #172019; --grid: #1f2a22; --rule: #2e3c32;
+    --ink: #dde6da; --ink-2: #9db0a1; --pen: #94acf2; --pen-soft: #1f2a48;
+    --ok: #7cc893; --ok-soft: #1c3424; --warn: #e2b350; --warn-soft: #3a2f14;
+    --bad: #ee8f84; --bad-soft: #3e1f1b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111813; --sheet: #172019; --grid: #1f2a22; --rule: #2e3c32;
+  --ink: #dde6da; --ink-2: #9db0a1; --pen: #94acf2; --pen-soft: #1f2a48;
+  --ok: #7cc893; --ok-soft: #1c3424; --warn: #e2b350; --warn-soft: #3a2f14;
+  --bad: #ee8f84; --bad-soft: #3e1f1b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 20px;
+}
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: 0.01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; }
+h2 { font-size: 22px; line-height: 1.2; }
+h3 { font-size: 17px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-family: var(--f-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+.muted { color: var(--ink-2); }
+a { color: var(--pen); }
+
+/* Header */
+.head { display: grid; grid-template-columns: 1fr auto; gap: 16px 24px; align-items: end; }
+.head p { margin: 6px 0 0; color: var(--ink-2); max-width: 60ch; }
+.counters { display: flex; gap: 10px; flex-wrap: wrap; }
+.counter { background: var(--sheet); border: 1px solid var(--rule); padding: 8px 14px; min-width: 128px; }
+.counter b { display: block; font-family: var(--f-mono); font-size: 26px; font-weight: 500; line-height: 1.15; }
+.counter span { font-size: 12.5px; color: var(--ink-2); }
+
+/* Calc sheet panel */
+.sheet { background: var(--sheet); border: 1px solid var(--rule); display: grid; grid-template-columns: 64px 1fr; min-width: 0; }
+.sheet > .ref { border-right: 1px solid var(--bad); opacity: 0.85; padding: 14px 8px; font-family: var(--f-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.sheet > .body { padding: 16px 20px 20px; min-width: 0; display: grid; gap: 14px; align-content: start; }
+.sheet-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 8px; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.col { display: grid; gap: 20px; min-width: 0; }
+
+/* This week */
+.weeknav { display: flex; gap: 6px; align-items: center; }
+button, .btn {
+  font: 500 14px/1 var(--f-body); color: var(--ink); background: var(--sheet);
+  border: 1px solid var(--rule); padding: 9px 14px; cursor: pointer; border-radius: 2px;
+}
+button:hover { border-color: var(--pen); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+button.primary { background: var(--pen); color: var(--sheet); border-color: var(--pen); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.icon-btn { padding: 7px 11px; font-family: var(--f-mono); }
+.topic { font-size: 18px; font-weight: 500; line-height: 1.55; margin: 0; }
+.kv { display: grid; grid-template-columns: 92px 1fr; gap: 6px 12px; margin: 0; }
+.kv dt { font-family: var(--f-display); text-transform: uppercase; letter-spacing: 0.06em; font-size: 12.5px; color: var(--ink-2); padding-top: 2px; }
+.kv dd { margin: 0; min-width: 0; }
+.chip { display: inline-block; font-family: var(--f-display); letter-spacing: 0.05em; font-size: 13px; padding: 1px 8px; border: 1px solid currentColor; border-radius: 2px; }
+.chip.p1 { color: var(--pen); } .chip.p2 { color: var(--ok); } .chip.p3 { color: var(--bad); }
+.chip.now { background: var(--pen); color: var(--sheet); border-color: var(--pen); }
+.form { display: grid; grid-template-columns: auto 120px 1fr; gap: 10px 14px; align-items: center; border-top: 1px dashed var(--rule); padding-top: 12px; }
+.form label { font-size: 14px; }
+.check { display: flex; align-items: center; gap: 8px; }
+.check input { width: 18px; height: 18px; accent-color: var(--ok); }
+input[type="number"], textarea, select {
+  font: 400 14px/1.5 var(--f-body); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); padding: 8px 10px; border-radius: 2px; width: 100%;
+}
+input[type="number"] { font-family: var(--f-mono); }
+textarea { resize: vertical; min-height: 64px; }
+.form .full { grid-column: 1 / -1; }
+.savebar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.status { font-size: 13px; color: var(--ink-2); }
+.status.err { color: var(--bad); }
+
+/* Timeline */
+.strip { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; }
+.cell {
+  aspect-ratio: 1; border: 1px solid var(--rule); background: var(--paper);
+  font: 500 11px/1 var(--f-mono); color: var(--ink-2); padding: 0; display: grid; place-items: center;
+  border-radius: 2px; min-width: 0;
+}
+.cell.done { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.cell.part { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+.cell.miss { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.cell.now { outline: 2px solid var(--pen); outline-offset: 1px; color: var(--pen); }
+.cell.sel { background: var(--pen); color: var(--sheet); border-color: var(--pen); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border: 1px solid; margin-right: 5px; vertical-align: -1px; }
+.phasebars { display: grid; gap: 10px; }
+.pbar { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 13.5px; }
+.pbar .track { grid-column: 1 / -1; height: 8px; background: var(--paper); border: 1px solid var(--rule); position: relative; }
+.pbar .fill { position: absolute; inset: 0 auto 0 0; background: var(--pen); }
+.pbar .plan { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--bad); }
+
+/* Milestones */
+.ms { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.ms li { display: grid; grid-template-columns: 100px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+.ms li:last-child { border-bottom: 0; }
+.ms .when { font-family: var(--f-mono); font-size: 13px; color: var(--ink-2); }
+.ms li.past { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--rule); }
+.ms li.next .when { color: var(--pen); font-weight: 500; }
+.est { font-size: 11.5px; color: var(--warn); font-family: var(--f-display); letter-spacing: 0.05em; }
+
+/* Quiz */
+.quiz-q { display: grid; gap: 8px; padding: 12px 0; border-top: 1px dashed var(--rule); }
+.quiz-q:first-child { border-top: 0; padding-top: 0; }
+.qhead { display: flex; gap: 10px; align-items: baseline; }
+.qnum { font-family: var(--f-mono); color: var(--pen); font-weight: 500; }
+.qtype { font-family: var(--f-display); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.qtext { margin: 0; white-space: pre-wrap; }
+.verdict { padding: 8px 12px; border-left: 3px solid var(--rule); background: var(--paper); font-size: 14px; white-space: pre-wrap; }
+.verdict.good { border-color: var(--ok); } .verdict.half { border-color: var(--warn); } .verdict.wrong { border-color: var(--bad); }
+.verdict b { font-family: var(--f-display); letter-spacing: 0.04em; margin-right: 6px; }
+.note { font-size: 12.5px; color: var(--ink-2); }
+.thinking { font-family: var(--f-mono); font-size: 13px; color: var(--pen); }
+
+/* Code table + flashcards */
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+td:first-child { white-space: nowrap; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { font-family: var(--f-display); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-size: 12.5px; color: var(--ink-2); border-bottom-color: var(--rule); }
+.st { font-family: var(--f-display); font-size: 12.5px; letter-spacing: 0.04em; padding: 0 6px; border-radius: 2px; white-space: nowrap; }
+.st.v { color: var(--ok); background: var(--ok-soft); } .st.p { color: var(--warn); background: var(--warn-soft); } .st.u { color: var(--bad); background: var(--bad-soft); }
+.card {
+  border: 1px solid var(--rule); background: var(--paper); min-height: 150px; padding: 18px; display: grid; align-content: center; gap: 10px;
+  cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit;
+}
+.card .face { font-size: 16px; line-height: 1.6; white-space: pre-wrap; }
+.card .side { font-family: var(--f-display); letter-spacing: 0.08em; font-size: 12px; text-transform: uppercase; color: var(--pen); }
+.cardnav { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+.banner { background: var(--warn-soft); color: var(--ink); border: 1px solid var(--warn); padding: 10px 14px; font-size: 14px; }
+footer { font-size: 12.5px; color: var(--ink-2); }
+
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .head { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .sheet { grid-template-columns: 1fr; }
+  .sheet > .ref { border-right: 0; border-bottom: 1px solid var(--bad); padding: 6px 14px; }
+  .sheet > .body { padding: 14px; }
+  .form { grid-template-columns: 1fr 1fr; }
+  .form .check { grid-column: 1 / -1; }
+  .strip { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .kv { grid-template-columns: 1fr; gap: 0 0; }
+  .kv dd { margin-bottom: 8px; }
+  .counter { min-width: 0; flex: 1 1 40%; }
+  .ms li { grid-template-columns: 1fr; gap: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pbar .fill { transition: width 400ms ease; }
+}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="label">CEng MICE · MHKIE (Civil) 申請中 → Structural discipline</div>
+      <h1>HKIE Structural 備考</h1>
+      <p>56 週計劃，每週約 6 小時。目標係 2027/28 屆 written exam；考試日子係按往年推算，HKIE 公佈之後要更新。</p>
+    </div>
+    <div class="counters">
+      <div class="counter"><b id="cWeek" class="mono">W1</b><span>今週</span></div>
+      <div class="counter"><b id="cApply" class="mono">—</b><span>日到報名截止 <span class="est">推算</span></span></div>
+      <div class="counter"><b id="cExam" class="mono">—</b><span>日到考試週 <span class="est">推算</span></span></div>
+    </div>
+  </header>
+
+  <div id="dbBanner" class="banner" hidden>未能連接進度儲存（例如未登入）。網頁照樣睇得，但剔咗嘅嘢唔會儲存。</div>
+
+  <div class="grid2">
+    <div class="col">
+      <!-- This week -->
+      <section class="sheet" aria-labelledby="wkTitle">
+        <div class="ref">Week</div>
+        <div class="body">
+          <div class="sheet-title">
+            <h2 id="wkTitle">今週</h2>
+            <div class="weeknav">
+              <button class="icon-btn" id="prevW" aria-label="上一週">‹</button>
+              <button id="todayW">返今週</button>
+              <button class="icon-btn" id="nextW" aria-label="下一週">›</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span id="wkLabel" class="mono" style="font-size:15px;font-weight:500">W1</span>
+            <span id="wkDates" class="muted mono" style="font-size:13px"></span>
+            <span id="wkPhase" class="chip p1">Phase 1</span>
+            <span id="wkNow" class="chip now" hidden>今週</span>
+          </div>
+          <p id="wkTopic" class="topic"></p>
+          <dl class="kv">
+            <dt>Code / 參考</dt><dd id="wkRef"></dd>
+            <dt>交付</dt><dd id="wkNotes"></dd>
+            <dt>計劃時數</dt><dd id="wkHours" class="mono"></dd>
+          </dl>
+          <div class="form">
+            <div class="check"><input type="checkbox" id="fDone"><label for="fDone">完成咗今週</label></div>
+            <label for="fHours" style="justify-self:end">實際時數</label>
+            <input type="number" id="fHours" min="0" max="40" step="0.5" inputmode="decimal">
+            <div class="full"><label for="fNote" class="label">筆記 / 卡住嘅位</label>
+              <textarea id="fNote" rows="3" placeholder="例如：punching shear 嘅 control perimeter 仲未熟"></textarea></div>
+            <div class="full savebar">
+              <button class="primary" id="saveBtn">儲存今週進度</button>
+              <span id="saveStatus" class="status"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="sheet" aria-labelledby="qzTitle">
+        <div class="ref">Quiz</div>
+        <div class="body">
+          <div class="sheet-title">
+            <h2 id="qzTitle">每週測驗</h2>
+            <span class="muted" style="font-size:13px">按上面揀咗嗰週嘅 topic 出題</span>
+          </div>
+          <p class="muted" style="margin:0">1 條 code lookup、2 條概念、1 條速算，大約 20 分鐘。答完撳「批改」。</p>
+          <div class="savebar">
+            <button class="primary" id="genBtn">出 4 條題</button>
+            <button id="stopBtn" hidden>停止</button>
+            <span id="qzStatus" class="status"></span>
+          </div>
+          <div id="qzList"></div>
+          <div class="savebar" id="gradeBar" hidden>
+            <button class="primary" id="gradeBtn">批改</button>
+          </div>
+          <div id="qzSummary"></div>
+          <p class="note">批改係 AI 參考答案。Code clause 號同數值，一律以你手上嘅最新版 code 為準。</p>
+        </div>
+      </section>
+
+      <!-- Flashcards -->
+      <section class="sheet" aria-labelledby="fcTitle">
+        <div class="ref">Cards</div>
+        <div class="body">
+          <div class="sheet-title">
+            <h2 id="fcTitle">考試要點卡</h2>
+            <span id="fcCount" class="mono muted" style="font-size:13px"></span>
+          </div>
+          <button class="card" id="fcCard" aria-live="polite">
+            <span class="side" id="fcSide">問題</span>
+            <span class="face" id="fcFace"></span>
+          </button>
+          <div class="cardnav">
+            <button id="fcPrev">‹ 上一張</button>
+            <span class="note">撳卡片睇答案</span>
+            <button id="fcNext">下一張 ›</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <!-- Progress -->
+      <section class="sheet" aria-labelledby="pgTitle">
+        <div class="ref">Prog.</div>
+        <div class="body">
+          <div class="sheet-title">
+            <h2 id="pgTitle">總進度</h2>
+            <span id="pgTotal" class="mono" style="font-size:14px"></span>
+          </div>
+          <div class="phasebars" id="phaseBars"></div>
+          <div class="strip" id="strip" role="list" aria-label="56 週"></div>
+          <div class="legend">
+            <span><i style="border-color:var(--ok);background:var(--ok-soft)"></i>完成</span>
+            <span><i style="border-color:var(--warn);background:var(--warn-soft)"></i>做咗部分</span>
+            <span><i style="border-color:var(--bad);background:var(--bad-soft)"></i>過咗期未做</span>
+            <span><i style="border-color:var(--pen)"></i>今週</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Milestones -->
+      <section class="sheet" aria-labelledby="msTitle">
+        <div class="ref">Dates</div>
+        <div class="body">
+          <div class="sheet-title"><h2 id="msTitle">里程碑</h2><span class="est">推算日期以 HKIE 公告為準</span></div>
+          <ul class="ms" id="msList"></ul>
+        </div>
+      </section>
+
+      <!-- Codes -->
+      <section class="sheet" aria-labelledby="cdTitle">
+        <div class="ref">Codes</div>
+        <div class="body">
+          <div class="sheet-title"><h2 id="cdTitle">現行規範</h2><span class="muted" style="font-size:13px">核實日期 2026-10-25</span></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>範疇</th><th>版本</th><th>狀態</th></tr></thead>
+              <tbody id="codeRows"></tbody>
+            </table>
+          </div>
+          <p class="note">✔ 已核實 · △ 部分核實 · ✕ 未核實。詳細 sources 喺 repo 嘅 02-codes-and-references.md。</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>考試格式：MCQ 1 小時 + Design 6.5 小時（Section A 兩個 distinct and viable schemes；Section B calcs + dimensioned framing plans；任何一個 section 低過 40% 即 FAIL）＋ 約 1 小時 competence-based interview。</footer>
+</div>
+
+<script>
+const WEEKS = [["P1","起步：讀 2026 Guidance Notes + 公告原文、核對 README 摘要；下載 past papers 同 examiner reports；email HKIE 問 footbridge 經驗是否計入；填自我評估表；約 building 組主管傾 shadow","HKIE Guidance Notes 2026; Examiner Reports",6,"交付：HKIE email 已寄、自評表、shadow 安排"],["P1","Loading 1：dead loads、imposed loads by usage、partition load、imposed load reduction","CoP DIL 2011 (2021 Ed.)",6,"練習：一座 office + carpark podium 嘅 loading schedule"],["P1","Loading 2：Wind 2019 building 部分 — design pressure、topography、static vs dynamic、force coefficients；睇 BD e-learning briefing","Wind Code 2019",6,"練習：30 層 building along-wind base shear / OTM"],["P1","Concrete 1：basis of design、load combinations、durability & fire cover、materials","CoP SUC 2013 (2020 Ed.) + amendments",6,"開始寫 rules of thumb 筆記"],["P1","Concrete 2：beams、one-way / two-way slabs、span/depth、crack control","CoP SUC 2013 — beams, slabs, serviceability",6,"練習：beam-slab floor panel calc"],["P1","Concrete 3：flat slab（equivalent frame / panel strips）、punching shear","CoP SUC 2013 — flat slabs, punching",6,"練習：flat slab 內柱 punching"],["P1","Concrete 4：columns（braced / unbraced、slenderness、biaxial）、walls","CoP SUC 2013 — columns, walls",6,"練習：podium column + wall"],["P1","Concrete 5：detailing rules、ductility requirements、deep beams、corbels / nibs","CoP SUC 2013 — detailing; HA RC Detailing Manual",6,"對照 HA manual 嘅 detail"],["P1","Buffer（聖誕）：複習 W2–W8 筆記；讀 2 份 past paper brief（唔做）","Past papers (read only)",3,"列出 brief 常見 client requirements"],["P1","Steel 1：classification、beams & LTB、composite beams / slabs","CoP Steel 2011 (2023 Ed.) — beams, composite",6,"練習：composite secondary + primary beam"],["P1","Steel 2：columns、portal frames、frame stability（notional horizontal forces、second-order）、bracing","CoP Steel 2011 — compression, frame stability",6,"練習：single-bay portal frame（workshop）"],["P1","Steel 3：connections（simple / moment）、base plates；floor vibration（對比 footbridge）","CoP Steel 2011 — connections, vibration",6,"練習：end plate moment connection"],["P1","Foundation 1：HK 常用 pile types、capacities、pile cap design","CoP Foundations 2017 (2024 Ed.) — piles",6,"練習：4-pile cap"],["P1","Foundation 2：raft、shallow foundations、uplift / buoyancy、negative skin friction、group effect","CoP Foundations 2017 — raft, uplift, NSF",6,"練習：raft bearing + uplift check"],["P1","Buffer（農曆新年）：BO Cap 123、Building (Construction) Regulation 架構、AP / RSE / RGE / RC 角色","BO Cap 123; B(C)R Parts 2–7",3,"W1 未核實嘅法例資料喺呢週處理"],["P1","Phase 1 checkpoint：2 小時限時 element 測驗 + 速算；重填自我評估表","Phase 1 全部",6,"對照 03-study-path 完成準則"],["P2","Scheme thinking：load path、structural form 選擇；分析 2 份 past paper brief 嘅 constraints","IStructE Stability of Buildings (intro); past papers",6,"建立 Section A 答題模板 v1"],["P2","Lateral stability 1：moment frame、shear wall、core、braced frame、frame-wall interaction；rigid diaphragm、centre of rigidity、torsion","IStructE Stability of Buildings; Smith & Coull",6,"練習：core + 4 walls lateral load 分配"],["P2","Lateral stability 2：hand methods（cantilever core、portal method）、drift、overturning、foundation reactions","Smith & Coull; CoP SUC 2013 — analysis",6,"練習：30 層 core building drift + OTM 去 pile"],["P2","Tall building wind：dynamic response、across-wind、torsion、acceleration limits；幾時要 wind tunnel","Wind Code 2019 — dynamic; Steel 2026 amendments (acceleration)",6,"練習：acceleration check"],["P2","Robustness / disproportionate collapse：ties、key elements；P-delta、notional loads 總結","CoP SUC 2013 & CoP Steel 2011 — robustness",6,"整理一頁 robustness checklist"],["P2","Transfer structures 1：transfer plate vs girder、load path、strut-and-tie 概念、APP-5 限制","APP-5; ADV-33; CoP SUC 2013 — deep beams",6,"Sketch：podium transfer 方案 ×2"],["P2","Transfer structures 2：transfer girder calc、column 下 punching、construction stage（分層澆注、propping）","CoP SUC 2013 — deep beams, punching",6,"練習：transfer girder 承托 2 支 tower column"],["P2","Core wall & shear wall：wall design、coupling beams、openings、lift / staircase core 佈置","CoP SUC 2013 — walls, ductility detailing",6,"練習：coupling beam + core wall section"],["P2","Floor systems 比較：RC beam-slab / flat slab / PT / composite steel；span/depth、services zone、storey height budget","Cobb Pocket Book; CoP SUC 2013; CoP Steel 2011",6,"做一張 floor system 比較表"],["P2","Long span & industrial：roof truss、portal frame、crane girder 概念（workshop / warehouse）","CoP Steel 2011; SCI Steel Designers' Manual",6,"練習：long-span roof truss scheme"],["P2","Basement 1：basement 類型、retaining wall、water pressure、uplift、tension piles、waterproofing","CoP Foundations 2017; Geoguide 1",6,"去 BD PNAP index 搵 basement 相關 APP"],["P2","Basement 2：ELS（sheet pile、pipe pile wall、diaphragm wall）、top-down vs bottom-up、struts","CoP Foundations 2017; GEO refs; BD ELS APP",6,"Sketch：2 層 basement top-down sequence"],["P2","Foundation scheme for buildings：core 下 pile layout、pile cap / raft、differential settlement","CoP Foundations 2017",6,"練習：core pile group under wind OTM"],["P2","Fire & durability：FRR、structural fire protection、cover；steel fire protection","Fire Safety Code 2011 (2024 Ed.); CoP SUC 2013 — durability & fire",6,"一頁 FRR / cover 速查"],["P2","Precast / MiC / DfMA：precast connections、MiC stability","Precast Code 2016 + amendments; ADV-36",6,"Interview 素材：DfMA 優缺點"],["P2","Construction sequence & temporary works：floor cycle、formwork、jump form、propping、column shortening、tower crane tie-in","Site visit + 同事訪問",6,"寫一份 1 頁 method statement 模板"],["P2","Building services coordination：beam / slab openings、plant loads、ceiling void、transfer plate BS zone","APP-5; CoP SUC 2013 — openings",6,"向 building 組借一套 coordination drawing 睇"],["P2","自擬 scheme 項目 A：自寫 brief + 兩個 distinct schemes + 比較 + 建議","Phase 1–2 全部",6,"Brief 例：25F office + podium + 2B basement"],["P2","自擬 scheme 項目 B：所選 scheme 嘅 critical element calcs","Phase 1–2 全部",6,"transfer / core / foundation 各 1 條"],["P2","自擬 scheme 項目 C：dimensioned framing plans、key details、method statement；交同事 review","ADV-33 checklist",6,"收集 comments"],["P2","規管深入：BD submission 流程、ADV-33 superstructure checklist 逐項對、B(C)R","ADV-33; B(C)R; BO Cap 123",6,"用 ADV-33 checklist 檢查自擬項目"],["P2","Phase 2 checkpoint：第一份 past paper Section A（3 小時，可 untimed）+ review；重填自我評估表","Past paper",6,"對照 03-study-path 完成準則"],["P3","考試技巧：6.5 小時時間分配、Section A 模板 v2、Section B 優先次序；讀 examiner reports 嘅 FAIL 準則","Examiner Reports; Guidance Notes",6,"定稿答題模板"],["P3","Past paper 1：Section A 限時 2.5h + Section B 限時 3.5h","Past paper",6,"Mentor / 自己按 40% 準則批改"],["P3","MCQ & code index：自製每本 code 一頁 index、tab codes、formula sheet v1","全部 codes",6,"MCQ 自擬題 drill"],["P3","Full mock #1（1h MCQ + 6.5h design，限時）","Past paper",8,"建議請 1 日假；超出 6h 預算"],["P3","Mock #1 review + 補弱項；準備 HKIE 報名文件（表格、證明、supporters）","HKIE application forms",6,"報名截止預計 8 月尾（以公告為準）"],["P3","交 HKIE 報名表（預計 8 月尾截止）；Past paper 2 Section A 限時","HKIE 2027/28 公告",6,"MILESTONE：報名已交"],["P3","Past paper 2 Section B：framing plans 繪圖速度練習（dimensioned）","Past paper; ADV-33",6,"目標：45 分鐘內出 2 張 framing plan"],["P3","Full mock #2（限時）","Past paper",8,"建議請 1 日假"],["P3","補弱：transfer / basement / core calcs 速度","CoP SUC 2013; CoP Foundations 2017",6,"按 mock #1–#2 錯處揀題"],["P3","MCQ drill 2 + steel / composite 快速 calcs","CoP Steel 2011; CoP DIL; Wind 2019",6,"MCQ 準確率目標 ≥ 70%"],["P3","Full mock #3（限時）","Past paper",8,"建議請 1 日假"],["P3","Mock #3 review；搵 HKIE Structural member 批改及面談","—",6,"記錄 examiner 角度嘅 comments"],["P3","Section A ×2：兩份唔同 brief，各 3 小時；重點 distinct + viable","Past papers",6,"比較兩個 scheme 係咪真係 distinct"],["P3","Full mock #4（模擬考試日開考時間）","Past paper",8,"建議請 1 日假；預期 10 月尾收 candidature 通知"],["P3","鞏固：formula sheet、rules of thumb、tabbed codes、答題 checklist 定稿","全部 codes",6,"Open-book 資料包完成"],["P3","輕量複習：重溫 mock 錯處；準備畫圖工具、calculator、考場安排","—",6,""],["P3","最後複習（輕）+ 休息","—",4,""],["P3","考試週（written exam 預計 11 月中下旬，以公告為準）","—",0,"考完開始 interview 文件準備"]];
+const START = new Date(2026, 9, 26);
+const EXAM_WEEK = new Date(2027, 10, 15);
+const APPLY_BY = new Date(2027, 7, 31);
+const PHASES = { P1: "Phase 1 基礎", P2: "Phase 2 Building design", P3: "Phase 3 考試技巧 / mock" };
+
+const MILESTONES = [
+  { d: "2026-11-08", t: "Email HKIE 確認資格同 footbridge 經驗；約 building 組傾 shadow", est: false },
+  { d: "2027-02-14", t: "Phase 1 checkpoint：2 小時 element 測驗、重填自我評估", est: false },
+  { d: "2027-07-18", t: "Phase 2 checkpoint：第一份 past paper Section A", est: false },
+  { d: "2027-08-15", t: "Full mock #1（W42）", est: false },
+  { d: "2027-08-31", t: "首次報考截止", est: true },
+  { d: "2027-09-12", t: "Full mock #2（W46）", est: false },
+  { d: "2027-10-03", t: "Full mock #3（W49）", est: false },
+  { d: "2027-10-24", t: "Full mock #4（W52）；留意 candidature 通知", est: true },
+  { d: "2027-11-15", t: "Written Examination 週", est: true },
+  { d: "2028-03-31", t: "交 interview assessment documentation", est: true },
+];
+
+const CODES = [
+  ["Concrete", "CoP SUC 2013 (2020 Ed.)，amendments 至 2024-04", "v"],
+  ["Steel", "CoP Steel 2011 (2023 Ed.)；2026-04 amendments 生效狀態未確認", "p"],
+  ["Wind", "CoP Wind Effects 2019（考試唯一接受）", "v"],
+  ["Foundations", "CoP Foundations 2017 (2024 Ed.)", "v"],
+  ["Dead & Imposed", "CoP DIL 2011 (2021 Ed.)", "v"],
+  ["Seismic", "暫時冇 in-force code（BD 策略項目）", "p"],
+  ["Fire Safety", "CoP Fire Safety 2011 (2024 Ed.)", "p"],
+  ["Precast", "CoP Precast 2016，amendments 2020-11、2026-06", "v"],
+  ["法例", "BO Cap 123；新 Building (Construction) Regulation（生效日期待核）", "p"],
+  ["PNAP", "APP-5（transfer plate）、ADV-33（superstructure checklist）、ADV-36（MiC）", "v"],
+];
+const ST = { v: ["✔ 已核實", "v"], p: ["△ 部分", "p"], u: ["✕ 未核實", "u"] };
+
+const CARDS = [
+  ["HKIE Structural Examination 由邊兩部分組成？有冇先後次序？", "Written Examination + Interview。兩部分都要 pass；written 唔係 interview 嘅 pre-requisite，反之亦然。"],
+  ["Written exam 嘅兩個 section 同時長？", "MCQ 1 小時 + Design Questions 6.5 小時。兩個 section 都要 pass。"],
+  ["Design paper Section A 通常要求乜？", "兩個 distinct and viable 嘅 superstructural schemes，符合 client requirements。"],
+  ["Section A 有咩情況會 FAIL？", "唔符合 client requirements；兩個 scheme 唔夠 distinct；其中一個 not viable。"],
+  ["Section B 要交乜？最容易 FAIL 嘅原因？", "Design calculations、framing plans、structural details。冇 properly dimensioned framing plans 會 FAIL。"],
+  ["Section A / B 嘅最低分？", "任何一個 section 低過 40% 即 FAIL。"],
+  ["考試可以帶乜入場？", "Reference books、notes、portable computers、programmable calculators（以當屆 guidance notes 為準），畫圖工具自備。"],
+  ["考試接受邊個 wind code？", "Code of Practice on Wind Effects in Hong Kong 2019，係唯一接受嘅 wind code。"],
+  ["Interview 嘅四個 competence pillars？", "Applying engineering knowledge；developing technical solutions；managing engineering works；maintaining professional acumen。約 1 小時。"],
+  ["General Experience Route 要幾多年經驗？", "Accredited / recognised degree + 畢業後至少 5 年 relevant experience（以當屆截數日計）。"],
+  ["Civil Scheme A 經 Formal Training Route 考 Structural 要額外申報乜？", "1.5 年 structural design experience（Declaration on Experience）。"],
+  ["Resit 時已 pass 部分有效幾耐？", "由第一次 PA 結果通知信日期起計 4 年。"],
+  ["現行 concrete code 版本？", "CoP for Structural Use of Concrete 2013 (2020 Edition)，最新 amendment 2024 年 4 月。"],
+  ["現行 steel code 版本？", "CoP for the Structural Use of Steel 2011 (2023 Edition)；2026 年 4 月有新 amendments（生效狀態要再確認）。"],
+  ["Foundations code 現時有冇包 seismic design？", "冇。Code 指如 superstructure 有考慮 seismic，foundation 都要考慮。"],
+  ["APP-5 對 transfer plate 厚度嘅限制（唔計 GFA）？", "Domestic ≤ 40 層：上限 = typical storey height；較高 domestic 或 non-domestic：上限 4.5 m；面積亦有上限。BS zone 唔計入厚度但要有 maintenance access。"],
+  ["ADV-33 superstructure checklist 對 transfer member 同 wind 有乜要求？", "要識別 major transfer members（failure would induce cumulative instability）；wind 下 lateral deflection 同 acceleration 要 check；要有 wind load 總結同 foundation level 嘅 lateral force equilibrium。"],
+  ["2022–23 屆整體 pass rate？", "22.6%（design question section 22.9%）。"],
+];
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const DAY = 86400000;
+const strip0 = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const pad = (n) => String(n).padStart(2, "0");
+const wkId = (n) => "w" + pad(n);
+const wkStart = (n) => new Date(START.getTime() + (n - 1) * 7 * DAY);
+const fmt = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const fmtShort = (d) => pad(d.getMonth() + 1) + "/" + pad(d.getDate());
+function currentWeek() {
+  const diff = Math.floor((strip0(new Date()) - START) / DAY);
+  return Math.min(Math.max(Math.floor(diff / 7) + 1, 1), WEEKS.length);
+}
+function daysUntil(d) { return Math.ceil((d - strip0(new Date())) / DAY); }
+
+let progress = {};
+let selected = currentWeek();
+let db = null;
+let dbReady = false;
+let dirty = false;
+
+/* ---------- render ---------- */
+function renderCounters() {
+  const now = currentWeek();
+  $("cWeek").textContent = "W" + now;
+  const a = daysUntil(APPLY_BY), e = daysUntil(EXAM_WEEK);
+  $("cApply").textContent = a >= 0 ? a : "已過";
+  $("cExam").textContent = e >= 0 ? e : "已過";
+}
+
+function renderWeek(force) {
+  const [ph, topic, ref, hours, notes] = WEEKS[selected - 1];
+  const s = wkStart(selected), e = new Date(s.getTime() + 6 * DAY);
+  $("wkLabel").textContent = "W" + selected;
+  $("wkDates").textContent = fmt(s) + " → " + fmtShort(e);
+  const chip = $("wkPhase");
+  chip.textContent = PHASES[ph];
+  chip.className = "chip " + ph.toLowerCase();
+  $("wkNow").hidden = selected !== currentWeek();
+  $("wkTopic").textContent = topic;
+  $("wkRef").textContent = ref;
+  $("wkNotes").textContent = notes || "—";
+  $("wkHours").textContent = hours + " 小時";
+  if (force || !dirty) {
+    const p = progress[wkId(selected)] || {};
+    $("fDone").checked = !!p.done;
+    $("fHours").value = p.hours ?? "";
+    $("fNote").value = p.note ?? "";
+    dirty = false;
+    const q = p.quiz;
+    $("saveStatus").textContent = p.updatedAt ? "上次儲存 " + p.updatedAt.slice(0, 10) + (q ? " · 測驗 " + q.score : "") : "";
+    $("saveStatus").className = "status";
+  }
+  $("prevW").disabled = selected <= 1;
+  $("nextW").disabled = selected >= WEEKS.length;
+}
+
+function cellState(n) {
+  const p = progress[wkId(n)];
+  const plan = WEEKS[n - 1][3];
+  if (p && p.done) return "done";
+  if (p && Number(p.hours) > 0) return Number(p.hours) >= plan ? "done" : "part";
+  if (n < currentWeek() && plan > 0) return "miss";
+  return "";
+}
+
+function renderStrip() {
+  const now = currentWeek();
+  const el = $("strip");
+  el.textContent = "";
+  for (let n = 1; n <= WEEKS.length; n++) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("role", "listitem");
+    const st = cellState(n);
+    b.className = "cell" + (st ? " " + st : "") + (n === now ? " now" : "") + (n === selected ? " sel" : "");
+    b.textContent = n;
+    b.title = "W" + n + " · " + fmt(wkStart(n)) + " · " + WEEKS[n - 1][1].slice(0, 40);
+    b.setAttribute("aria-label", "W" + n + (st === "done" ? " 完成" : st === "part" ? " 做咗部分" : st === "miss" ? " 未做" : ""));
+    b.onclick = () => selectWeek(n);
+    el.appendChild(b);
+  }
+}
+
+function renderPhases() {
+  const now = currentWeek();
+  const box = $("phaseBars");
+  box.textContent = "";
+  let tPlan = 0, tDone = 0;
+  for (const ph of ["P1", "P2", "P3"]) {
+    let plan = 0, done = 0, toDate = 0;
+    WEEKS.forEach((w, i) => {
+      if (w[0] !== ph) return;
+      plan += w[3];
+      if (i + 1 < now) toDate += w[3];
+      const p = progress[wkId(i + 1)];
+      if (p && Number(p.hours) > 0) done += Number(p.hours);
+      else if (p && p.done) done += w[3];
+    });
+    tPlan += plan; tDone += done;
+    const row = document.createElement("div");
+    row.className = "pbar";
+    const pct = Math.min(100, plan ? (done / plan) * 100 : 0);
+    const exp = Math.min(100, plan ? (toDate / plan) * 100 : 0);
+    row.innerHTML = '<span></span><span class="mono"></span><div class="track"><div class="fill"></div><div class="plan"></div></div>';
+    row.children[0].textContent = PHASES[ph];
+    row.children[1].textContent = done + " / " + plan + " h";
+    row.querySelector(".fill").style.width = pct + "%";
+    const pl = row.querySelector(".plan");
+    pl.style.left = "calc(" + exp + "% - 1px)";
+    pl.title = "按計劃到今日應該做到 " + toDate + " h";
+    box.appendChild(row);
+  }
+  $("pgTotal").textContent = tDone + " / " + tPlan + " h";
+}
+
+function renderMilestones() {
+  const today = strip0(new Date());
+  const ul = $("msList");
+  ul.textContent = "";
+  let nextMarked = false;
+  for (const m of MILESTONES) {
+    const d = new Date(m.d + "T00:00:00");
+    const li = document.createElement("li");
+    const past = d < today;
+    if (past) li.className = "past";
+    else if (!nextMarked) { li.className = "next"; nextMarked = true; }
+    const w = document.createElement("span");
+    w.className = "when";
+    w.textContent = (m.est ? "約 " : "") + m.d;
+    const t = document.createElement("span");
+    t.textContent = m.t;
+    if (m.est) { const e = document.createElement("span"); e.className = "est"; e.textContent = " 推算"; t.appendChild(e); }
+    li.append(w, t);
+    ul.appendChild(li);
+  }
+}
+
+function renderCodes() {
+  const tb = $("codeRows");
+  for (const [a, b, s] of CODES) {
+    const tr = document.createElement("tr");
+    const st = ST[s];
+    tr.innerHTML = "<td></td><td></td><td><span></span></td>";
+    tr.children[0].textContent = a;
+    tr.children[1].textContent = b;
+    const sp = tr.children[2].firstChild;
+    sp.className = "st " + st[1];
+    sp.textContent = st[0];
+    tb.appendChild(tr);
+  }
+}
+
+let fc = 0, fcBack = false;
+function renderCard() {
+  const [q, a] = CARDS[fc];
+  $("fcSide").textContent = fcBack ? "答案" : "問題";
+  $("fcFace").textContent = fcBack ? a : q;
+  $("fcCount").textContent = (fc + 1) + " / " + CARDS.length;
+}
+
+function renderAll() { renderCounters(); renderWeek(); renderStrip(); renderPhases(); }
+
+function selectWeek(n) {
+  if (dirty && !confirmLeave()) return;
+  selected = Math.min(Math.max(n, 1), WEEKS.length);
+  dirty = false;
+  renderWeek(true); renderStrip();
+  resetQuiz();
+}
+function confirmLeave() {
+  // No native confirm() in the viewer: unsaved edits are kept in the status line instead.
+  $("saveStatus").textContent = "今週有未儲存嘅改動，請先儲存（或者再撳一次切換）";
+  $("saveStatus").className = "status err";
+  dirty = false;
+  return false;
+}
+
+/* ---------- db ---------- */
+async function initDb() {
+  db = await claude.use("db");
+  if (!db) { $("dbBanner").hidden = false; $("saveBtn").disabled = true; return; }
+  db.collection("progress").onSnapshot((snap) => {
+    const next = {};
+    snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
+    progress = next;
+    dbReady = true;
+    renderAll();
+  }, () => { $("dbBanner").hidden = false; $("saveBtn").disabled = true; });
+}
+
+async function saveWeek(extra) {
+  if (!db) return;
+  const id = wkId(selected);
+  const prev = progress[id] || {};
+  const hoursRaw = $("fHours").value.trim();
+  const body = Object.assign({}, prev, {
+    week: selected,
+    done: $("fDone").checked,
+    hours: hoursRaw === "" ? 0 : Math.max(0, Number(hoursRaw) || 0),
+    note: $("fNote").value.slice(0, 4000),
+    updatedAt: new Date().toISOString(),
+  }, extra || {});
+  $("saveBtn").disabled = true;
+  $("saveStatus").textContent = "儲存緊…";
+  $("saveStatus").className = "status";
+  try {
+    await db.doc("progress/" + id).set(body);
+    dirty = false;
+    $("saveStatus").textContent = "已儲存 W" + selected;
+  } catch (e) {
+    $("saveStatus").textContent = e && e.code === "invalid_argument" ? "你冇權限改呢頁嘅進度" : "儲存唔到，請稍後再試";
+    $("saveStatus").className = "status err";
+  } finally {
+    $("saveBtn").disabled = false;
+  }
+}
+
+/* ---------- quiz ---------- */
+let sample = null, quiz = null, ctl = null;
+const QERR = {
+  not_granted: "你未允許呢頁使用 Claude，測驗功能已停用。",
+  sampling_disabled: "你個帳戶暫時用唔到 Claude。",
+  rate_limited: "用得太密，等陣再試。",
+  session_expired: "請重新登入。",
+  invalid_json: "出題格式出錯，再撳一次試試。",
+};
+function qErr(e) { return QERR[e && e.code] || "連線出錯，再試一次。"; }
+
+function resetQuiz() {
+  if (ctl) ctl.abort();
+  quiz = null;
+  $("qzList").textContent = "";
+  $("qzSummary").textContent = "";
+  $("gradeBar").hidden = true;
+  $("qzStatus").textContent = "";
+}
+
+async function genQuiz() {
+  if (!sample) return;
+  resetQuiz();
+  const [ph, topic, ref] = WEEKS[selected - 1];
+  const prompt = [
+    "你係香港 HKIE Structural discipline 考試導師。考生係香港 civil engineer（HyD footbridge design 背景），缺乏 building design 經驗。",
+    "請用繁體中文（廣東話書面語可以），工程術語保留英文，按以下溫習主題出 4 條練習題：",
+    "主題：" + topic,
+    "參考 code：" + ref + "（香港現行版本：CoP SUC 2013 (2020 Ed.)、CoP Steel 2011 (2023 Ed.)、Wind Code 2019、CoP Foundations 2017 (2024 Ed.)、CoP DIL 2011 (2021 Ed.)）",
+    "階段：" + PHASES[ph],
+    "題型分配：第 1 條 code_lookup（要考生自己喺 code 搵條文 / 表，講出 clause 或者 table 同重點，唔好假設你知道確實 clause 號）；第 2、3 條 concept（解釋 / 比較 / 判斷，偏 building 應用）；第 4 條 sizing（俾具體數字，要考生用 rules of thumb 或簡單 hand calc 估算 member size 或者 load，5–10 分鐘做到）。",
+    "唔好抄 HKIE past paper 原文。每條題目 1–4 句。",
+    '只回覆一個 JSON array，格式：[{"type":"code_lookup|concept|sizing","question":"…","hint":"一句提示"}]',
+  ].join("\n");
+  ctl = new AbortController();
+  $("genBtn").disabled = true; $("stopBtn").hidden = false;
+  $("qzStatus").textContent = "Claude 諗緊題目…（大約 10–60 秒）";
+  $("qzStatus").className = "thinking";
+  try {
+    const arr = await sample.json(prompt, { signal: ctl.signal, cache: false });
+    if (!Array.isArray(arr) || !arr.length) throw { code: "invalid_json" };
+    quiz = { week: selected, items: arr.slice(0, 4).map((x) => ({
+      type: String(x.type || ""), question: String(x.question || ""), hint: String(x.hint || ""),
+    })) };
+    renderQuiz();
+    $("qzStatus").textContent = "";
+  } catch (e) {
+    $("qzStatus").textContent = e && e.code === "cancelled" ? "" : qErr(e);
+    $("qzStatus").className = "status err";
+    if (e && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(e.code)) $("genBtn").hidden = true;
+  } finally {
+    $("genBtn").disabled = false; $("stopBtn").hidden = true;
+  }
+}
+
+const QTYPE = { code_lookup: "Code lookup", concept: "概念", sizing: "速算" };
+function renderQuiz() {
+  const box = $("qzList");
+  box.textContent = "";
+  quiz.items.forEach((it, i) => {
+    const d = document.createElement("div");
+    d.className = "quiz-q";
+    d.innerHTML = '<div class="qhead"><span class="qnum"></span><span class="qtype"></span></div><p class="qtext"></p><p class="note"></p><textarea rows="3"></textarea><div class="verdict" hidden></div>';
+    d.querySelector(".qnum").textContent = "Q" + (i + 1);
+    d.querySelector(".qtype").textContent = QTYPE[it.type] || it.type;
+    d.querySelector(".qtext").textContent = it.question;
+    d.querySelector(".note").textContent = it.hint ? "提示：" + it.hint : "";
+    const ta = d.querySelector("textarea");
+    ta.id = "qa" + i;
+    ta.setAttribute("aria-label", "Q" + (i + 1) + " 答案");
+    ta.placeholder = "你嘅答案";
+    box.appendChild(d);
+  });
+  $("gradeBar").hidden = false;
+}
+
+async function gradeQuiz() {
+  if (!sample || !quiz) return;
+  const answers = quiz.items.map((_, i) => ($("qa" + i).value || "").trim());
+  if (answers.every((a) => !a)) { $("qzStatus").textContent = "先答咗至少一條先批改"; $("qzStatus").className = "status err"; return; }
+  const prompt = [
+    "你係香港 HKIE Structural 考試導師，請批改以下練習答案。用繁體中文，工程術語保留英文，語氣直接。",
+    "對每條：verdict 用 good / half / wrong 其中一個；feedback 2–4 句，指出啱咗乜、漏咗乜、正確方向。Code clause 號你唔肯定就叫考生自己喺 code 核對，唔好作。冇答嘅當 wrong，feedback 寫答題要點。",
+    "最後俾 overall：一句總評 + 一個下週要補嘅重點。",
+    '只回覆 JSON：{"items":[{"verdict":"good|half|wrong","feedback":"…"}],"overall":"…"}',
+    "",
+    JSON.stringify(quiz.items.map((it, i) => ({ type: it.type, question: it.question, answer: answers[i] || "(冇答)" }))),
+  ].join("\n");
+  ctl = new AbortController();
+  $("gradeBtn").disabled = true; $("stopBtn").hidden = false;
+  $("qzStatus").textContent = "Claude 批改緊…";
+  $("qzStatus").className = "thinking";
+  try {
+    const r = await sample.json(prompt, { signal: ctl.signal, cache: false });
+    const items = Array.isArray(r && r.items) ? r.items : [];
+    let good = 0, half = 0;
+    document.querySelectorAll("#qzList .quiz-q").forEach((d, i) => {
+      const v = items[i] || {};
+      const verdict = ["good", "half", "wrong"].includes(v.verdict) ? v.verdict : "wrong";
+      if (verdict === "good") good++; else if (verdict === "half") half++;
+      const box = d.querySelector(".verdict");
+      box.hidden = false;
+      box.className = "verdict " + verdict;
+      box.textContent = "";
+      const b = document.createElement("b");
+      b.textContent = verdict === "good" ? "✔ 啱" : verdict === "half" ? "△ 一半" : "✕ 要再溫";
+      box.append(b, document.createTextNode(String(v.feedback || "")));
+    });
+    const score = (good + half * 0.5) + "/" + quiz.items.length;
+    const sum = $("qzSummary");
+    sum.textContent = "";
+    const v = document.createElement("div");
+    v.className = "verdict";
+    const b = document.createElement("b");
+    b.textContent = "總評 " + score;
+    v.append(b, document.createTextNode(String((r && r.overall) || "")));
+    sum.appendChild(v);
+    $("qzStatus").textContent = "";
+    if (db && quiz.week === selected) {
+      await saveWeek({ quiz: { score, date: new Date().toISOString().slice(0, 10), overall: String((r && r.overall) || "").slice(0, 600) } });
+    }
+  } catch (e) {
+    $("qzStatus").textContent = e && e.code === "cancelled" ? "" : qErr(e);
+    $("qzStatus").className = "status err";
+  } finally {
+    $("gradeBtn").disabled = false; $("stopBtn").hidden = true;
+  }
+}
+
+async function initSample() {
+  sample = await claude.use("sample");
+  if (!sample) { $("genBtn").hidden = true; $("qzStatus").textContent = "呢個檢視模式用唔到測驗功能。"; }
+}
+
+/* ---------- wire up ---------- */
+$("prevW").onclick = () => selectWeek(selected - 1);
+$("nextW").onclick = () => selectWeek(selected + 1);
+$("todayW").onclick = () => selectWeek(currentWeek());
+$("saveBtn").onclick = () => saveWeek();
+["fDone", "fHours", "fNote"].forEach((id) => $(id).addEventListener("input", () => { dirty = true; }));
+$("genBtn").onclick = genQuiz;
+$("gradeBtn").onclick = gradeQuiz;
+$("stopBtn").onclick = () => ctl && ctl.abort();
+$("fcCard").onclick = () => { fcBack = !fcBack; renderCard(); };
+$("fcPrev").onclick = () => { fc = (fc - 1 + CARDS.length) % CARDS.length; fcBack = false; renderCard(); };
+$("fcNext").onclick = () => { fc = (fc + 1) % CARDS.length; fcBack = false; renderCard(); };
+
+renderAll(); renderMilestones(); renderCodes(); renderCard();
+if (window.claude && claude.use) { initDb(); initSample(); }
+else { $("dbBanner").hidden = false; $("saveBtn").disabled = true; $("genBtn").hidden = true; }
+</script>
