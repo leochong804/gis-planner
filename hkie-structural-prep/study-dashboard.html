@@ -226,6 +226,38 @@ footer { font-size: 12.5px; color: var(--ink-2); }
 .scblock ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; }
 .scblock.fail h3 { color: var(--bad); }
 
+/* AI tutor */
+.aitabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.aitabs button[aria-selected="true"] { background: var(--pen); color: var(--sheet); border-color: var(--pen); }
+.aipane { display: grid; gap: 12px; min-width: 0; }
+.aibar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.aiout { display: grid; gap: 10px; min-width: 0; }
+.aiout h4 { font-family: var(--f-display); font-size: 16px; font-weight: 600; margin: 4px 0 0; letter-spacing: 0.02em; }
+.aiout p { margin: 0; }
+.aiout ul, .aiout ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.aiout .lead { font-size: 17px; font-weight: 500; }
+.aiout .tag { justify-self: start; font-family: var(--f-display); font-size: 12px; letter-spacing: 0.06em; color: var(--pen); border: 1px solid currentColor; padding: 0 6px; border-radius: 2px; }
+.aiout details { border: 1px solid var(--rule); background: var(--paper); padding: 8px 12px; }
+.aiout summary { cursor: pointer; font-weight: 500; }
+.aiout .box { border-left: 3px solid var(--pen); background: var(--paper); padding: 8px 12px; }
+.aiout .box.warn { border-color: var(--warn); }
+.mcqopts { display: grid; gap: 6px; }
+.mcqopts button { text-align: left; line-height: 1.5; padding: 8px 12px; }
+.mcqopts button.right { border-color: var(--ok); background: var(--ok-soft); }
+.mcqopts button.wrongpick { border-color: var(--bad); background: var(--bad-soft); }
+.chatlog { display: grid; gap: 10px; max-height: 460px; overflow-y: auto; padding-right: 4px; }
+.msg { padding: 8px 12px; border: 1px solid var(--rule); min-width: 0; overflow-wrap: anywhere; }
+.msg.me { background: var(--pen-soft); justify-self: end; max-width: 85%; white-space: pre-wrap; }
+.msg.ai { background: var(--paper); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { font-size: 13px; padding: 5px 10px; }
+.drillq { border: 1px solid var(--rule); border-left: 3px solid var(--pen); background: var(--paper); padding: 10px 12px; display: grid; gap: 4px; }
+.drill2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.drill2 label { display: grid; gap: 4px; font-size: 13.5px; }
+.vbadge { justify-self: start; font-family: var(--f-display); letter-spacing: 0.06em; font-size: 14px; padding: 2px 10px; border-radius: 2px; }
+.vbadge.pass { color: var(--ok); background: var(--ok-soft); } .vbadge.borderline { color: var(--warn); background: var(--warn-soft); } .vbadge.fail { color: var(--bad); background: var(--bad-soft); }
+.fcai { border-top: 1px dashed var(--rule); padding-top: 10px; }
+
 @media (max-width: 860px) {
   .grid2 { grid-template-columns: minmax(0, 1fr); }
   .head { grid-template-columns: 1fr; }
@@ -244,6 +276,8 @@ footer { font-size: 12.5px; color: var(--ink-2); }
   .pprow { grid-template-columns: 1fr; gap: 6px; }
   .ppyear { grid-auto-flow: column; justify-content: start; align-items: baseline; gap: 10px; }
   .scgrid { grid-template-columns: minmax(0, 1fr); }
+  .drill2 { grid-template-columns: 1fr; }
+  .msg.me { max-width: 100%; }
   #codeRows tr { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
   #codeRows td { border: 0; padding: 0; }
   #codeRows td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
@@ -270,6 +304,81 @@ footer { font-size: 12.5px; color: var(--ink-2); }
   </header>
 
   <div id="dbBanner" class="banner" hidden>未能連接進度儲存（例如未登入）。網頁照樣睇得，但剔咗嘅嘢唔會儲存。</div>
+
+
+  <!-- AI tutor -->
+  <section class="sheet" aria-labelledby="aiTitle" id="aiSheet">
+    <div class="ref">Tutor</div>
+    <div class="body">
+      <div class="sheet-title">
+        <h2 id="aiTitle">AI 導師</h2>
+        <span class="muted" style="font-size:13px">每日知識點同今週導讀會自動生成並儲存；用你自己 Claude 帳戶嘅用量</span>
+      </div>
+      <div class="aitabs" role="tablist" aria-label="AI 導師功能">
+        <button type="button" role="tab" data-tab="daily" aria-selected="true">今日知識點</button>
+        <button type="button" role="tab" data-tab="lesson" aria-selected="false">今週導讀</button>
+        <button type="button" role="tab" data-tab="chat" aria-selected="false">問導師</button>
+        <button type="button" role="tab" data-tab="drill" aria-selected="false">Scheme 快練</button>
+      </div>
+      <p id="aiOff" class="note" hidden></p>
+
+      <div class="aipane" data-pane="daily">
+        <div class="aibar">
+          <span id="dyMeta" class="mono muted" style="font-size:13px"></span>
+          <button type="button" id="dyRegen">換一個</button>
+          <span id="dyStatus" class="status"></span>
+        </div>
+        <div class="aiout" id="dyOut"></div>
+      </div>
+
+      <div class="aipane" data-pane="lesson" hidden>
+        <div class="aibar">
+          <span id="lsMeta" class="mono muted" style="font-size:13px"></span>
+          <button type="button" class="primary" id="lsGen">生成導讀</button>
+          <span id="lsStatus" class="status"></span>
+        </div>
+        <div class="aiout" id="lsOut"></div>
+      </div>
+
+      <div class="aipane" data-pane="chat" hidden>
+        <div class="chips" id="chChips"></div>
+        <div class="chatlog" id="chLog" aria-live="polite"></div>
+        <textarea id="chIn" rows="3" placeholder="例如：transfer plate 同 transfer girder 點揀？或者 BA8 同 BA10 有咩分別？"></textarea>
+        <div class="aibar">
+          <button type="button" class="primary" id="chSend">發送</button>
+          <button type="button" id="chStop" hidden>停止</button>
+          <button type="button" id="chClear">清除對話</button>
+          <span id="chStatus" class="status"></span>
+        </div>
+      </div>
+
+      <div class="aipane" data-pane="drill" hidden>
+        <div class="aibar">
+          <select id="drType" aria-label="題型" style="width:auto">
+            <option value="building">Building 題</option>
+            <option value="bridge">Bridge 題</option>
+          </select>
+          <button type="button" id="drPick">抽一條 past paper</button>
+          <span id="drHist" class="note"></span>
+        </div>
+        <div id="drQ"></div>
+        <div id="drForm" hidden>
+          <p class="note" style="margin:0">用 15–20 分鐘寫兩個 scheme 嘅要點（材料、grid、transfer、lateral system、foundation、點解 viable），AI 會用評分規則批改。</p>
+          <div class="drill2">
+            <label>Scheme A<textarea id="drA" rows="7"></textarea></label>
+            <label>Scheme B<textarea id="drB" rows="7"></textarea></label>
+          </div>
+          <label style="display:grid;gap:4px;font-size:13.5px;margin-top:8px">建議邊個同原因（可以唔填）<textarea id="drR" rows="2"></textarea></label>
+          <div class="aibar" style="margin-top:8px">
+            <button type="button" class="primary" id="drGrade">交卷批改</button>
+            <button type="button" id="drStop" hidden>停止</button>
+            <span id="drStatus" class="status"></span>
+          </div>
+        </div>
+        <div class="aiout" id="drOut"></div>
+      </div>
+    </div>
+  </section>
 
   <div class="grid2">
     <div class="col">
@@ -370,6 +479,8 @@ footer { font-size: 12.5px; color: var(--ink-2); }
             <span class="note">撳卡片睇答案</span>
             <button id="fcNext">下一張 ›</button>
           </div>
+          <div class="aibar"><button type="button" id="fcAi">AI 詳解呢張卡</button><span id="fcAiStatus" class="status"></span></div>
+          <div class="aiout fcai" id="fcAiOut" hidden></div>
         </div>
       </section>
     </div>
@@ -519,6 +630,20 @@ const LIB = {
   plan16: { t: "HKIE 16 週溫書 Plan & Checklist", id: "1muIjBS85J5lKXrcC2nwyra2YmX8EJRCu", g: "guide" },
   mcq_v1: { t: "MCQ Trial V1：Structural Behaviour & Engineering Judgement", id: "1J4gTg5jl7oYH1pzX4GkXFrRoljY7UTiA", g: "mcq" },
   mcq_v2: { t: "MCQ Trial V2：Construction Practice & Professional Judgement", id: "1mHPiUodTcI-BsNBHKhb6q9rszokBXtCG", g: "mcq" },
+  cap123: { t: "Buildings Ordinance Cap. 123（2026-03 版，Claude 只讀到 Part 1）", id: "1lYYdU7XAhdN674Ey-a4ezIVN0Ruv4xTg", g: "stat" },
+  cap123a: { t: "Building (Administration) Regulations Cap. 123A", id: "1Y9IgtWE273g4fVAv7o5Hkt6pSlYeNqdq", g: "stat" },
+  cap123q: { t: "Building (Construction) Regulation Cap. 123Q", id: "15_dmDG67_Jb-rHVWa5ss5kldLZpaLyxs", g: "stat" },
+  cap123f: { t: "Building (Planning) Regulations Cap. 123F", id: "1Meys6aOl7Pf4q4ntczhUtrGXCw6UFWjU", g: "stat" },
+  cap123n: { t: "Building (Minor Works) Regulation Cap. 123N", id: "1pN0CRECNJcXj2Qr_z8SoqiaNtFqnmFXj", g: "stat" },
+  app60: { t: "PNAP APP-60：BO specified forms（2026-05）", id: "1O4IjO5AUqYVL4L49gx-X7I43hC2ADvin", g: "stat" },
+  ss2009: { t: "Code of Practice for Site Supervision 2009（2024 Ed.）", id: "1ps76SdiVgMauhgBOIzadRhaUSIB065Hl", g: "stat" },
+  ba5: { t: "BA5：申請 approval of plans", id: "1AYY1M7cHUga4e9FQ_lCmIX2VQzy6bhbl", g: "ba" },
+  ba8: { t: "BA8：申請 consent to commence", id: "1bK4znPSOnP5y0R-1VPxF2DyMo9fk1dwX", g: "ba" },
+  ba8a: { t: "BA8A：申請 concurrent consent", id: "1NFKUUcqGk1EsNbpwBNoLTUQ_s0lOENoG", g: "ba" },
+  ba10: { t: "BA10：委任 RC + 開工通知", id: "1rhWfXaM298bG-QgMe_cQN67DyBVWBG6b", g: "ba" },
+  ba12: { t: "BA12：完工證明 + TOP", id: "1o6d1xEQfEEkAO830pztk1pzLJYy83kD5", g: "ba" },
+  ba13: { t: "BA13：完工證明 + OP（新建築物）", id: "1Entmibhi8OGFQrO_gJsw1caaEbYkJHt8", g: "ba" },
+  ba14: { t: "BA14：完工證明（非新建築物 / A&A）", id: "1zDSMe-fMtyuZfNyI-iyaZcqlliylvDuk", g: "ba" },
   pp2025: { t: "HKIE Past Paper 2025", id: "1NcoJU34sLYtimG0sSiLuqHJY0N7fIGax", g: "pp" },
   pp2024: { t: "HKIE Past Paper 2024", id: "1BmVT3rw0d79y11ctb_vz_SNm4arex6pt", g: "pp" },
   pp2023: { t: "HKIE Past Paper 2023", id: "1nrmqiWpz1UjL_i7NWvmQMvjfdWwkzMXN", g: "pp" },
@@ -541,7 +666,7 @@ const LIB = {
   crit_q5:   { t: "IStructE Chief Examiner critique, Jan 2024 Q5", id: "1qjKETWsrgvSyf_5Splr_-zH1RrgD4Np2", g: "exam" },
   crit_q3:   { t: "IStructE Chief Examiner critique, Jul 2024 Q3", id: "1UVqSH_Oh89DmChDJ-4CsPR4ulRuDLw8f", g: "exam" },
 };
-const LIB_GROUPS = [["pp", "HKIE past papers"], ["sol", "參考答案（Structural Fireman）"], ["guide", "答題指南"], ["mcq", "MCQ 練習"], ["exam", "IStructE 考官資料"], ["code", "Codes 同 amendments"], ["hb", "HKIE-ST 手冊同 HA manual"], ["note", "你嘅筆記"], ["book", "參考書"]];
+const LIB_GROUPS = [["pp", "HKIE past papers"], ["sol", "參考答案（Structural Fireman）"], ["guide", "答題指南"], ["mcq", "MCQ 練習"], ["exam", "IStructE 考官資料"], ["code", "Codes 同 amendments"], ["hb", "HKIE-ST 手冊同 HA manual"], ["stat", "法規（Statutory_Other）"], ["ba", "BA forms"], ["note", "你嘅筆記"], ["book", "參考書"]];
 const driveUrl = (k) => "https://drive.google.com/file/d/" + LIB[k].id + "/view";
 
 /* Per-week reading from the Drive folder: [docKey, what to read]. Index 0 = W1. */
@@ -559,8 +684,8 @@ const READING = [
   [["suos", "§2.5.8 notional horizontal forces；§6.3 frame classification（λcr）；§6.4 imperfections；§8.7 compression；§8.9 combined；§8.11 portal frames；§6.10 bracing"], ["steel_hb", "second-order analysis example"]],
   [["suos", "§9.2 welds；§9.3 bolts；§9.4 baseplates；§5.4 human-induced floor vibration"], ["suos_a26", "§13.6.4 footbridge vibration（同你本行有關）、A2.5 AISC DG11、Eq. 9.9/9.10"], ["steel_note", "你自己嘅 highlight"]],
   [["fdn", "§5.1 general；§5.3 load capacity of piles；§5.4 common pile types；§5.5 pile caps"], ["cop_suc", "§6.7.3 pile caps；§9.7 foundations detailing"], ["fdn_hb", "pile 部分"]],
-  [["fdn", "§2.2 bearing pressure；§2.3 settlement；§2.5.4 sliding、uplift、overturning；§4 shallow foundations；§5.2 NSF"], ["fdn_a25", "4 500 kPa、10 m overburden、E = 1.5N"], ["fdn_note", "你嘅 amendment 筆記"]],
-  [["dil", "Foreword：B(C)R 同 code 嘅關係；§1.1"], ["mcq_v2", "Building control：submission → approval → consent → OP / TOP"]],
+  [["fdn", "§2.2 bearing pressure；§2.3 settlement；§2.5.4 sliding、uplift、overturning；§4 shallow foundations；§5.2 NSF"], ["fdn_a25", "4 500 kPa、10 m overburden、E = 1.5N"], ["fdn_note", "你嘅 amendment 筆記"], ["cap123q", "s.19 BA 可要求現場測試；s.20 proof tests（test load、core drilling）"]],
+  [["cap123", "Part 2：s.14 approval + consent、s.14A 冇 supervision plan 唔當同意、s.14AA minor works、s.15–16、s.21 OP（Claude 讀唔到 Part 2，自己睇）"], ["cap123a", "Reg 29–32：60 / 30 日當批准、consent 28 日；reg 18 A&A stability certificate；reg 41 RC 監工"], ["cap123q", "Part 1–6 架構：s.13–16 設計原則、s.19–20 測試 + proof test"], ["app60", "Appendix A：BA4、BA5、BA8、BA10、BA12–14 用途"], ["mcq_v2", "Building control：submission → approval → consent → OP / TOP"]],
   [["mcq_v1", "MCQ drill：load path、transfer、punching、anchorage"], ["script23", "用考官 comments 做 self-check"]],
   [["gb1", "Design appraisal 表、scheme options draft、distinct 清單"], ["gb_v32", "6 種 vertical transfer + 3 種 lateral system"], ["istructe_ec3", "scheme design 同 initial sizing 章"]],
   [["cop_suc", "§5.2.6 frames providing lateral stability；§5.4 shear walls"], ["kassimali", "approximate analysis 章"]],
@@ -572,28 +697,28 @@ const READING = [
   [["cop_suc", "§6.2.2 walls；§9.6 walls detailing；§9.9.3 ductility（walls）"], ["suc_hb", "walls 部分"]],
   [["istructe_ec2", "floor system 比較同 span tables"], ["istructe_ec3", "steel floor options"], ["cop_suc", "§12 prestressed（§12.4.2 flat slabs）"]],
   [["suos", "§8.11 portal frames；§8.4 plate girders；§2.5.7 crane loads"], ["pp2024", "Q1 Workshop and Office：crane + 輕鋼 brief"], ["crit_q3", "大跨度：construction access 點樣決定 span"]],
-  [["fdn", "§6.1 basements；§2.5.3 underground water；§2.5.4 uplift；§6.3 retaining walls"], ["dil", "§3.9 surcharges"]],
+  [["fdn", "§6.1 basements；§2.5.3 underground water；§2.5.4 uplift；§6.3 retaining walls"], ["dil", "§3.9 surcharges"], ["cap123q", "Part 7：s.21 site formation、s.23–24 retaining wall design + drainage"]],
   [["fdn", "§6.2 diaphragm walls；§6.4 ground anchors；§7.2 對鄰近建築物嘅影響（Table 7.2）"], ["fdn_a25", "Amend. 5：Table 7.2 加咗 Land"]],
   [["fdn", "§5.3 pile capacity；§5.5 pile caps；§2.3 settlement"], ["em2", "2019 Q3：bored pile + uplift check（Foundation Code §5.1.6 / §5.3.3）"], ["cop_suc", "§6.7.3 pile caps"]],
-  [["cop_suc", "§4.3 fire resistance；§3.7 elevated temperatures"], ["suos", "§12 fire resistant design"]],
+  [["cop_suc", "§4.3 fire resistance；§3.7 elevated temperatures"], ["suos", "§12 fire resistant design"], ["cap123q", "Part 10 s.35 fire resisting construction（細節喺 Fire Safety CoP）"]],
   [["cop_suc", "§5.6 precast elements"], ["suos", "§10.5 composite columns"], ["suos_a26", "§10.5：CFST 用到 S690 / C80"]],
-  [["cop_suc", "§10.3.8 formwork and falsework；§10.3.10 construction joints；§7.2.4 early thermal cracking"], ["gb7", "Method statement checklist + programme（BA10 / BA14 → OP）"], ["mcq_v2", "Construction stage、striking、back-propping"]],
+  [["cop_suc", "§10.3.8 formwork and falsework；§10.3.10 construction joints；§7.2.4 early thermal cracking"], ["gb7", "Method statement checklist + programme（BA10 / BA14 → OP）"], ["mcq_v2", "Construction stage、striking、back-propping"], ["ss2009", "§4.9–4.11 temporary works Case 1 / 2 / 3：邊類要設計、T5 Person 證明、21 日前交 RSE"]],
   [["suos", "§8.2.3 beams with web openings；§8.2.4 castellated beams"]],
   [["pp_guide25", "2025 Q1 / Q5：點樣由 constraints 諗出兩個 distinct scheme"], ["script23", "對照答卷結構"], ["crit_q1", "現有建築物改動嘅 scheme"]],
   [["em1", "2019 Q3：Section 1(a) 全套答題框架"], ["em2", "Section 2 calcs 格式"], ["gb5", "2(c) calcs 範本"]],
   [["gb_v32", "Framing plan checklist：1:500 graph paper、typical bay、legend"], ["em2", "2019 Q3 framing plans 參考"], ["script23", "GA drawings 嘅考官 comments"]],
-  [["mcq_v2", "Building control、contract admin MCQ"], ["gb1", "Major / minor non-compliance 清單"]],
+  [["ss2009", "§4 四條 stream + TCP T1–T5；§6 foundation quality supervision；§8 scale factor"], ["cap123q", "s.11–20：notice of load、overloading、stability、construction methods、proof tests"], ["cap123a", "Reg 18、29–33、41"], ["app60", "將 BA forms 同 BO / B(A)R 條文配對"], ["ba5", "睇一次表格：AP / RSE 要簽乜"], ["ba10", "RC undertaking + 開工通知"], ["cap123n", "Minor works Class I / II / III 分別（有時間先睇）"], ["mcq_v2", "Building control 題"], ["gb1", "Programme 題要包 approval → consent → OP"]],
   [["pp2019", "Q3 Workshop：做 Section A（3 小時）"], ["em1", "做完先對照參考答案"], ["gb1", "用 marking scheme 自己扣分"]],
   [["gb1", "Timetable：Section A 200 分鐘點分"], ["gb4", "1(b) wind：考官要求 + 冇 1.4 overload factor 扣 3 分"], ["em10", "2024 Q4：wind table + stability check"]],
   [["pp2023", "Q5 Footbridge：做 Section A + 1(b)（bridge 題）"], ["crit_q3", "大跨 bridge scheme 寫法"]],
-  [["cop_suc", "做 index"], ["suos", "做 index"], ["wind", "做 index"], ["fdn", "做 index"], ["dil", "做 index"], ["mcq_v1", "MCQ drill"]],
+  [["cop_suc", "做 index"], ["suos", "做 index"], ["wind", "做 index"], ["fdn", "做 index"], ["dil", "做 index"], ["mcq_v1", "MCQ drill"], ["cap123a", "做 index：reg 18、29–33、41"], ["ss2009", "做 index：TCP 表、temporary works 流程圖"]],
   [["pp2025", "Full mock：Q2 Pedestrian and Cycle Bridge（bridge）"], ["gb7", "做完用 method statement / programme checklist 自評"]],
   [["script23", "對照你嘅 mock"], ["gb1", "用 marking scheme 扣分"], ["gb7", "programme：approval、consent、BA10 / BA14"]],
   [["pp2020", "Q3 Composite Shopping Arcade：做 Section A"], ["em3", "對照參考答案"]],
   [["pp2019", "Q3 Workshop：練 dimensioned framing plans"], ["em2", "framing plan 參考"], ["gb_v32", "framing plan checklist"]],
   [["pp2022", "Full mock：Q3 Office Building with Open Sky Garden（building）"], ["em6", "做完先對照參考答案"], ["em7", "transfer plate + calcs"]],
   [["cop_suc", "§5.5、§6.1.5（punching）"], ["fdn", "§6.1 basements"], ["em7", "2022 Q3 transfer plate calc"]],
-  [["suos", "§10.2–10.4"], ["dil", "Tables 3.2–3.11"], ["wind", "§3–§4"], ["mcq_v1", "MCQ drill"], ["mcq_v2", "MCQ drill"]],
+  [["suos", "§10.2–10.4"], ["dil", "Tables 3.2–3.11"], ["wind", "§3–§4"], ["mcq_v1", "MCQ drill"], ["mcq_v2", "MCQ drill"], ["app60", "BA forms 速記"], ["ss2009", "Supervision plan 題 drill"]],
   [["pp2024", "Full mock：Q2 Trunk Road above existing Roadway（bridge）"]],
   [["crit_q1", "重溫"], ["crit_q3", "重溫"], ["crit_q5", "重溫"], ["gb4", "1(b) wind 再溫"]],
   [["pp2021", "Q4 Footbridge：做 Section A"], ["pp2023", "Q2 Library Building：做 Section A"]],
@@ -841,6 +966,22 @@ const CARDS = [
   ["code", "Concrete code 入面 transfer structure、shear wall、robustness 喺邊節？", "§5.5 transfer structures；§5.4 shear walls；§2.1.4 同 §6.4 robustness（ties、bridging elements）；§9.9 ductility detailing。", "cop_suc"],
   ["exam", "IStructE 考官：兩個 scheme 都用 piles 得唔得？", "得，但要講其他 foundation 方案點解唔 viable；淨係 framing distinct 而 foundation 冇比較會失分。", "script23"],
   ["exam", "IStructE 考官：transfer truss 點 size？", "要計（例如 M = PL、弦桿力 = M / 深度），唔可以淨係用 span/depth ratio。", "script23"],
+  ["stat", "圖則交咗 BD，幾耐冇回覆就當批准？", "首次呈交或大幅修訂：60 日；其他再次呈交：30 日（BO s.15 + B(A)R 30(3)）。BD 認為係大幅修訂要喺 30 日內通知 AP / RSE。", "cap123a"],
+  ["stat", "申請 consent to commence，幾耐冇回覆就當同意？", "28 日（BO s.15 + B(A)R 32(3)）。BD 可以分部份俾 consent。", "cap123a"],
+  ["stat", "冇交 supervision plan 會點？幾時要交？", "BO s.14A：冇交 supervision plan，BD 唔會當已經同意。Supervision plan 要喺申請 consent 之前或者同時交；TCP 唔使預先批准。", "ss2009"],
+  ["stat", "Supervision plan 有邊幾條 stream？T1–T5 點分工？", "AP、RSE、RGE、RC（authorized signatory）四條 stream。T1–T3 負責 routine safety supervision，T4–T5 負責 engineering safety supervision；representative 係該 stream 最高級嘅 TCP。", "ss2009"],
+  ["stat", "Temporary works 嘅 Case 3 點處理？", "RC 出設計圖同 calcs，由 T5 Person 證明，最遲開工前 21 日交 RSE / RGE；RSE / RGE 檢查會唔會令永久結構、毗鄰建築或土地超應力，冇問題先書面准許。", "ss2009"],
+  ["stat", "邊類 falsework / formwork 一定要有設計圖同 calcs（Case 2）？", "Falsework：transfer plate、vehicular ramp、cantilever slab > 1.5 m、beam span > 12 m、deep beam > 3 m、prestressed、footbridge。Formwork：column / wall 高過 6 m、retaining wall 高過 4 m。仲有 temporary working platform 同吊運機械。", "ss2009"],
+  ["stat", "Foundation works 嘅 quality supervision 由邊啲 TCP 負責？", "RSE 同佢嘅 T5、T3；RSC(F) 嘅 authorized signatory 同 T4、T2。視乎階段要全職駐場或者抽查某個百分比，實際要求 BD 批圖 / consent 時逐個 case 定。", "ss2009"],
+  ["stat", "Soil nailing 要幾多 TCP 全職駐場？", "每個階段最少 1 個 RGE 嘅 T3 同 1 個 RSC(SF) 嘅 T1 全職駐場。", "ss2009"],
+  ["stat", "A&A 工程交圖時要附咩證明？", "B(A)R 18 stability certificate（BA6）：AP / RSE 證明檢查過現有建築，認為佢承受到改動後增加或改變嘅荷載。", "cap123a"],
+  ["stat", "BA4、BA5、BA8、BA10、BA12、BA13、BA14 各做乜？", "BA4 委任 AP / RSE / RGE；BA5 申請 approval；BA8 申請 consent（BA8A concurrent）；BA10 委任 RC + 開工通知；BA12 TOP；BA13 新建築物 OP；BA14 非新建築物（A&A）完工。", "app60"],
+  ["stat", "改變建築物用途、申請豁免、緊急工程用邊份 form？", "BA15 material change in use（BO s.25）；BA16 modification / exemption（BO s.42）；BA7 urgent works（BO s.19）；BA9 renew consent（BO s.20）。", "app60"],
+  ["stat", "B(C)R 對 foundation 測試有咩要求？", "s.19：BA 對設計假定或承載力有懷疑，可要求現場測試。s.20：有代表性嘅 foundation units 要做 proof test，可以用 test load、core drilling（cast-in-place）或其他合適方法。", "cap123q"],
+  ["stat", "工業大廈同貨倉嘅樓面荷載有咩法例要求？", "B(C)R s.11：每層每條樓梯（或其他適當位置）要永久展示設計分布外加荷載告示；s.12：唔可以超出恰當承載力（測試荷載除外）。", "cap123q"],
+  ["stat", "新 B(C)R 對設計同施工嘅總原則？", "s.13 設計要符合力學定律、認可工程原理同常規；s.14 strength + serviceability；s.15 有足夠 margin against instability；s.16 施工要用適當方法同預防措施，令毗鄰建築受損或出現裂縫即當違反。", "cap123q"],
+  ["stat", "會擠擁地方嘅 protective barrier 荷載？", "Line load 3 kN/m，加喺樓面上 1.1 m 或者欄杆頂（取較低）；infill UDL 1.5 kPa、集中荷載 1.5 kN（B(C)R 附表）。", "cap123q"],
+  ["stat", "Minor works 使唔使 approval 同 consent？", "唔使（BO s.14AA），跟 simplified requirements 做，用 MW01–MW05 通知同完工證明；Class I 最複雜，要 AP / RSE 參與。", "app60"],
   ["mcq", "Approval of plans、consent to commence works 同 occupation permit 嘅次序？", "先 approval（BO s.14(1)(a)），再申請 consent 先可以動工（s.14(1)(b)），完工後申請 OP（s.21）。Programme 題要排埋呢幾步。", "mcq_v1"],
   ["mcq", "拆模（striking formwork）應該根據乜決定？", "根據 concrete 實際達到嘅強度（例如 cube 或者 temperature-matched 試件），唔係淨係睇日數；仲要考慮上面樓層嘅施工荷載同 back-propping。", "mcq_v1"],
   ["mcq", "Back-propping 有咩作用？", "將新澆樓板同施工荷載分散去下面幾層已建樓板，避免未夠強度嘅樓板超載。", "mcq_v1"],
@@ -1111,8 +1252,8 @@ function renderReading() {
   }
 }
 
-const FC_TOPICS = [["all", "全部"], ["exam", "考試"], ["mcq", "MCQ"], ["load", "Loading"], ["steel", "Steel"], ["fdn", "Foundation"], ["wind", "Wind"], ["code", "Code 版本"]];
-let fc = 0, fcBack = false, fcTopic = "all";
+const FC_TOPICS = [["all", "全部"], ["exam", "考試"], ["stat", "法規"], ["mcq", "MCQ"], ["load", "Loading"], ["steel", "Steel"], ["fdn", "Foundation"], ["wind", "Wind"], ["code", "Code 版本"]];
+let fc = 0, fcBack = false, fcTopic = "all", fcAiFor = null;
 const fcDeck = () => CARDS.filter((c) => fcTopic === "all" || c[0] === fcTopic);
 function renderFcFilter() {
   const box = $("fcFilter");
@@ -1134,6 +1275,8 @@ function renderCard() {
   $("fcFace").textContent = fcBack ? a : q;
   $("fcSrc").textContent = fcBack && src ? "出處：" + LIB[src].t : "";
   $("fcCount").textContent = (fc + 1) + " / " + deck.length;
+  // Keep an AI explanation while the same card is flipped; clear it when the card changes.
+  if ($("fcAiOut") && fcAiFor !== q) { $("fcAiOut").hidden = true; $("fcAiOut").textContent = ""; fcAiFor = null; }
 }
 
 const PP_FILTERS = [["all", "全部"], ["bridge", "Bridge"], ["building", "Building"], ["aa", "A&A"], ["special", "特殊"], ["sol", "有參考答案"]];
@@ -1258,7 +1401,7 @@ function selectWeek(n) {
   selected = Math.min(Math.max(n, 1), WEEKS.length);
   dirty = false;
   renderWeek(true); renderStrip();
-  resetQuiz();
+  resetQuiz(); renderLesson();
 }
 function confirmLeave() {
   // No native confirm() in the viewer: unsaved edits are kept in the status line instead.
@@ -1339,7 +1482,7 @@ async function genQuiz() {
     "參考 code：" + ref + "（香港現行版本：CoP SUC 2013 (2020 Ed.)、CoP Steel 2011 (2023 Ed.)、Wind Code 2019、CoP Foundations 2017 (2024 Ed.)、CoP DIL 2011 (2021 Ed.)）",
     "階段：" + PHASES[ph],
     "考生今週讀緊（題目要扣返呢啲章節）：" + ((READING[selected - 1] || []).map(([k, w]) => LIB[k].t + "：" + w).join("；") || "（冇指定）"),
-    "已知最新 amendments：Steel 2026-04（§5.3.4 acceleration 改跟 HKWC 1 年同 10 年 peak；§13.6.4 footbridge vertical ≥ 3 Hz；§10.5 CFST 至 S690/C80）；Foundations 2025-09（qu 上限有 basement 時 4 500 kPa；basement effective overburden ≤ 10 m 或 Bf；raft 喺 N > 30 residual soil Es = 1.5N）；Wind 2023-12（WTT 條件、size factor）。",
+    AMEND,
     "題型分配：第 1 條 code_lookup（要考生自己喺 code 搵條文 / 表，講出 clause 或者 table 同重點，唔好假設你知道確實 clause 號）；第 2、3 條 concept（解釋 / 比較 / 判斷，偏 building 應用）；第 4 條 sizing（俾具體數字，要考生用 rules of thumb 或簡單 hand calc 估算 member size 或者 load，5–10 分鐘做到）。",
     "唔好抄 HKIE past paper 原文。每條題目 1–4 句。",
     '只回覆一個 JSON array，格式：[{"type":"code_lookup|concept|sizing","question":"…","hint":"一句提示"}]',
@@ -1439,10 +1582,449 @@ async function gradeQuiz() {
   }
 }
 
-async function initSample() {
-  sample = await claude.use("sample");
-  if (!sample) { $("genBtn").hidden = true; $("qzStatus").textContent = "呢個檢視模式用唔到測驗功能。"; }
+/* ---------- AI tutor ---------- */
+const AMEND = "已知最新 amendments：Steel 2026-04（§5.3.4 acceleration 改跟 HKWC 1 年同 10 年 peak；§13.6.4 footbridge vertical ≥ 3 Hz；§10.5 CFST 至 S690/C80）；Foundations 2025-09（qu 上限有 basement 時 4 500 kPa；basement effective overburden ≤ 10 m 或 Bf；raft 喺 N > 30 residual soil Es = 1.5N）；Wind 2023-12（WTT 條件、size factor）。";
+const LEO = "考生 Leo：香港 civil engineer，CEng MICE，申請緊 MHKIE (Civil)，HyD footbridge design 背景，consultant 公司有 building 組；building design、法規（BO、B(A)R、B(C)R、PNAP、site supervision、BA forms）、施工技術、現場測試、地盤安全、成本、PM 係弱項。目標 2027/28 屆 HKIE Structural written exam（MCQ 1h + design 6.5h）同 interview。";
+const STYLE = "用繁體中文（廣東話書面語），工程術語保留英文。內容要準確、具體、貼香港實務；唔肯定嘅 clause 號、數值或年份就寫「（請喺原文核對）」，唔好作。唔好抄 HKIE past paper 原文。";
+const factsText = () => CARDS.filter((c) => c[0] === "stat" || c[0] === "mcq" || c[0] === "fdn" || c[0] === "wind")
+  .map((c) => "- " + c[1] + " → " + c[2]).join("\n");
+const libText = () => Object.keys(LIB).filter((k) => !/^pp20/.test(k)).map((k) => k + "：" + LIB[k].t).join("\n");
+const pastText = () => PAST.map((q) => q[0] + " Q" + q[1] + " " + q[2] + "（" + PTYPE[q[3]] + "）" + (q[4] ? "：" + q[4] : "")).join("\n");
+const weekText = (n) => {
+  const [ph, topic, ref, , notes] = WEEKS[n - 1];
+  return "W" + n + "（" + PHASES[ph] + "）主題：" + topic + "\n參考：" + ref + "\n交付：" + (notes || "—") +
+    "\n今週閱讀：" + ((READING[n - 1] || []).map(([k, w]) => LIB[k].t + "：" + w).join("；") || "（冇指定）");
+};
+
+/* Daily knowledge point topics, weighted to Leo's weak areas. */
+const DAILY = [
+  ["法規", "Approval、consent、OP / TOP 嘅流程同法定時限（BO s.14–16、s.21，B(A)R 29–32）"],
+  ["施工", "Bored pile 施工：casing、bentonite、base cleaning、rock socket 驗收，同常見缺陷"],
+  ["法規", "Supervision plan：四條 stream、TCP T1–T5、quality supervision 同 site safety supervision 嘅分別"],
+  ["測試", "Pile load test（static、dynamic / PDA）vs integrity test（sonic logging、PIT、coring）：目的、驗收準則"],
+  ["法規", "Temporary works Case 1 / 2 / 3：邊類要設計、邊個證明、邊個批"],
+  ["施工", "拆模同 back-propping：根據實際強度、施工荷載分佈、多層 propping"],
+  ["安全", "Construction Sites (Safety) Regulations 同 Lifting Appliances and Lifting Gear Regulations 嘅重點責任"],
+  ["法規", "BA forms 一生：BA4 → BA5 → BA8 → BA10 → BA12 / BA13 / BA14，每份邊個簽"],
+  ["測試", "Concrete 驗收：cube test、compliance criteria、core test 幾時用（CS1）"],
+  ["成本", "Scheme 比較嘅 cost 論點：RC vs steel composite vs precast，每 m² 造價同 programme 影響"],
+  ["法規", "A&A 工程：stability certificate（B(A)R 18）、material change in use（BO s.25 / BA15）、APP-117 wind 檢查"],
+  ["施工", "ELS 同 dewatering：sheet pile、pipe pile wall、diaphragm wall，對毗鄰建築嘅影響同 monitoring trigger level（Alert / Alarm / Action）"],
+  ["法規", "Minor works control system：Class I / II / III、MW forms、邊啲唔使 approval"],
+  ["PM", "合約管理：variation、EOT、claims；NEC compensation event 同傳統 GCC 嘅分別"],
+  ["施工", "Transfer plate 施工：分層澆注、heat of hydration、temperature control、propping 落去 podium"],
+  ["測試", "鋼筋同 coupler 測試（CS2）、焊接檢驗、bolt tightening 檢查"],
+  ["法規", "新 B(C)R Cap. 123Q：performance-based 架構、s.13–16 設計原則、Part 6 foundation 要求"],
+  ["安全", "Tower crane：foundation、tie-in 落結構、爬升、檢驗證書，同 RSE 要檢查乜"],
+  ["施工", "Precast / MiC：吊裝、臨時穩定、接駁 grout sleeve 質量控制"],
+  ["法規", "Railway protection 同 Scheduled Area No. 3：額外要求同 design / construction 限制（一般原則）"],
+  ["PM", "Construction programme：typical floor cycle、critical path、approval / consent 喺 programme 嘅位置"],
+  ["測試", "Proof test 同 in-situ load test：現有結構評估、A&A 加荷載前點證明"],
+  ["安全", "Confined space、working at height、棚架安全：法例同 RSE / RC 責任分界"],
+  ["施工", "Demolition：BD Code of Practice for Demolition of Buildings 嘅方法同次序、拆卸前結構評估"],
+];
+const todayStr = () => fmt(new Date());
+function dailyTopic() {
+  const d = Math.floor((strip0(new Date()) - START) / DAY);
+  if (d >= 0 && d % 3 === 2) return ["今週", WEEKS[currentWeek() - 1][1]];
+  return DAILY[((d % DAILY.length) + DAILY.length) % DAILY.length];
 }
+
+let aiDb = null, aiOn = false, dyBusy = false, lsBusy = false;
+let lessons = {};
+const FATAL = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
+function aiFail(e, statusEl) {
+  if (e && e.code === "cancelled") { statusEl.textContent = ""; return; }
+  statusEl.textContent = qErr(e);
+  statusEl.className = "status err";
+  if (e && FATAL.includes(e.code)) {
+    aiOn = false;
+    $("aiOff").hidden = false;
+    $("aiOff").textContent = "AI 功能停用咗（未允許呢頁使用 Claude，或者帳戶暫時用唔到）。重新開頁可以再允許。";
+  }
+}
+function busy(statusEl, text) { statusEl.textContent = text; statusEl.className = "thinking"; }
+
+/* Minimal Markdown → DOM (headings, lists, bold), all via textContent. */
+function inline(el, text) {
+  text.split(/(\*\*[^*]+\*\*)/).forEach((part) => {
+    if (/^\*\*[^*]+\*\*$/.test(part)) { const b = document.createElement("b"); b.textContent = part.slice(2, -2); el.appendChild(b); }
+    else if (part) el.appendChild(document.createTextNode(part));
+  });
+}
+function mdRender(box, text) {
+  box.textContent = "";
+  let list = null;
+  for (const raw of String(text).split("\n")) {
+    const line = raw.trimEnd();
+    const h = line.match(/^#{1,4}\s+(.*)/), ul = line.match(/^\s*[-*•]\s+(.*)/), ol = line.match(/^\s*\d+[.)]\s+(.*)/);
+    if (ul || ol) {
+      const tag = ul ? "UL" : "OL";
+      if (!list || list.tagName !== tag) { list = document.createElement(tag.toLowerCase()); box.appendChild(list); }
+      const li = document.createElement("li"); inline(li, (ul || ol)[1]); list.appendChild(li);
+      continue;
+    }
+    list = null;
+    if (!line.trim()) continue;
+    const node = document.createElement(h ? "h4" : "p");
+    inline(node, h ? h[1] : line);
+    box.appendChild(node);
+  }
+}
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) inline(e, String(text)); return e; };
+function srcLine(box, keys) {
+  const ks = (Array.isArray(keys) ? keys : []).map(String).filter((k) => LIB[k]).slice(0, 4);
+  if (!ks.length) return;
+  const d = el("div", "doclinks");
+  d.appendChild(document.createTextNode("核對："));
+  ks.forEach((k) => d.appendChild(docLink(k)));
+  box.appendChild(d);
+}
+
+/* Tabs */
+document.querySelectorAll(".aitabs button").forEach((b) => {
+  b.onclick = () => {
+    document.querySelectorAll(".aitabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    document.querySelectorAll(".aipane").forEach((p) => { p.hidden = p.dataset.pane !== b.dataset.tab; });
+    if (b.dataset.tab === "lesson") renderLesson();
+  };
+});
+
+/* Daily knowledge point */
+function renderDaily(rec) {
+  const box = $("dyOut");
+  box.textContent = "";
+  if (!rec || !rec.data) return;
+  const d = rec.data;
+  $("dyMeta").textContent = rec.date + " · " + (rec.area || "");
+  box.appendChild(el("span", "tag", rec.area || "知識點"));
+  box.appendChild(el("p", "lead", d.title || ""));
+  if (d.why) box.appendChild(el("p", "muted", d.why));
+  const ul = document.createElement("ul");
+  (Array.isArray(d.points) ? d.points : []).forEach((t) => ul.appendChild(el("li", "", t)));
+  box.appendChild(ul);
+  if (d.exam) { const b = el("div", "box"); b.appendChild(el("b", "", "考試點出：")); inline(b, String(d.exam)); box.appendChild(b); }
+  const m = d.mcq;
+  if (m && Array.isArray(m.options) && m.options.length >= 2) {
+    box.appendChild(el("h4", "", "自測一條"));
+    box.appendChild(el("p", "", m.q || ""));
+    const opts = el("div", "mcqopts");
+    const why = el("div", "box", "");
+    why.hidden = true;
+    m.options.forEach((o, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = "ABCD"[i] + ". " + o;
+      b.onclick = () => {
+        opts.querySelectorAll("button").forEach((x, j) => { x.disabled = true; if (j === Number(m.answer)) x.classList.add("right"); });
+        if (i !== Number(m.answer)) b.classList.add("wrongpick");
+        why.hidden = false;
+        why.textContent = "";
+        why.appendChild(el("b", "", i === Number(m.answer) ? "✔ 啱 " : "✕ 答案係 " + "ABCD"[Number(m.answer)] + " "));
+        inline(why, String(m.why || ""));
+      };
+      opts.appendChild(b);
+    });
+    box.append(opts, why);
+  }
+  if (d.verify) box.appendChild(el("p", "note", "核對：" + d.verify));
+  srcLine(box, d.docs);
+}
+async function genDaily(force) {
+  if (!aiOn || dyBusy) return;
+  const date = todayStr();
+  if (!force && aiDb) {
+    try {
+      const snap = await aiDb.doc("daily/" + date).get();
+      if (snap.exists) { renderDaily(snap.data()); return; }
+    } catch (e) { /* fall through and generate */ }
+  }
+  const [area, topic] = force ? DAILY[Math.floor(Math.random() * DAILY.length)] : dailyTopic();
+  const prompt = [
+    "你係香港 HKIE Structural 考試導師，每日主動教 Leo 一個知識點（5 分鐘睇完）。", LEO, STYLE,
+    "今日範疇：" + area + "；題目：" + topic,
+    "今週溫緊：" + weekText(currentWeek()).split("\n")[0],
+    "已核實嘅資料（優先用呢啲；其他內容按你嘅專業知識，唔肯定就標明要核對）：\n" + factsText(),
+    "Leo 嘅文件（docs 只可以揀呢度嘅 key）：\n" + libText(),
+    '只回覆一個 JSON object：{"title":"一句標題","why":"一句：點解考試同實務要識","points":["3–5 點，每點 1–2 句，具體到數字、程序或責任"],"exam":"喺 MCQ / design paper / interview 通常點出現，1–2 句","mcq":{"q":"一條 MCQ","options":["4 個選項"],"answer":0,"why":"1–2 句解釋"},"verify":"去邊份文件邊一節核對","docs":["0–3 個上面嘅 key"]}',
+  ].join("\n\n");
+  dyBusy = true;
+  busy($("dyStatus"), "AI 準備緊今日知識點…（10–60 秒）");
+  try {
+    const data = await sample.json(prompt, { cache: aiDb ? false : { gcTime: 86400000 } });
+    const rec = { date, area, topic, data, createdAt: new Date().toISOString() };
+    renderDaily(rec);
+    $("dyStatus").textContent = "";
+    if (aiDb) await aiDb.doc("daily/" + date).set(rec).catch(() => {});
+  } catch (e) { aiFail(e, $("dyStatus")); }
+  finally { dyBusy = false; }
+}
+
+/* Weekly lesson */
+function renderLesson() {
+  const n = selected;
+  $("lsMeta").textContent = "W" + n + "：" + WEEKS[n - 1][1].slice(0, 40) + (WEEKS[n - 1][1].length > 40 ? "…" : "");
+  const rec = lessons[wkId(n)];
+  $("lsGen").textContent = rec ? "重新生成" : "生成 W" + n + " 導讀";
+  const box = $("lsOut");
+  box.textContent = "";
+  if (!rec || !rec.data) { box.appendChild(el("p", "note", aiOn ? "未有導讀。今週嘅導讀會自動生成；其他週撳上面個掣。" : "AI 功能未開。")); return; }
+  const d = rec.data;
+  if (d.overview) box.appendChild(el("p", "lead", d.overview));
+  (Array.isArray(d.concepts) ? d.concepts : []).forEach((c) => {
+    box.appendChild(el("h4", "", c.name || ""));
+    box.appendChild(el("p", "", c.explain || ""));
+    if (c.hk) box.appendChild(el("p", "note", "香港實務：" + c.hk));
+  });
+  if (d.footbridge) { const b = el("div", "box"); b.appendChild(el("b", "", "用你 footbridge 經驗理解：")); inline(b, String(d.footbridge)); box.appendChild(b); }
+  if (d.trap) { const b = el("div", "box warn"); b.appendChild(el("b", "", "常見錯誤：")); inline(b, String(d.trap)); box.appendChild(b); }
+  if (d.example && d.example.problem) {
+    const det = document.createElement("details");
+    const sm = document.createElement("summary");
+    sm.textContent = "例題：" + d.example.problem;
+    det.appendChild(sm);
+    const sol = el("div", "aiout");
+    mdRender(sol, String(d.example.solution || ""));
+    det.appendChild(sol);
+    box.appendChild(det);
+  }
+  const past = (Array.isArray(d.past) ? d.past : []).filter((x) => PAST.some((q) => q[0] === Number(x.year) && q[1] === Number(x.q)));
+  if (past.length) {
+    box.appendChild(el("h4", "", "Past paper 點考"));
+    const ul = document.createElement("ul");
+    past.forEach((x) => {
+      const q = PAST.find((r) => r[0] === Number(x.year) && r[1] === Number(x.q));
+      const li = document.createElement("li");
+      li.appendChild(docLink("pp" + q[0], q[0] + " Q" + q[1] + " " + q[2]));
+      li.appendChild(document.createTextNode("：" + String(x.how || "")));
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+  const checks = Array.isArray(d.checks) ? d.checks : [];
+  if (checks.length) {
+    box.appendChild(el("h4", "", "自我檢查（諗完先撳開）"));
+    checks.forEach((c) => {
+      const det = document.createElement("details");
+      const sm = document.createElement("summary");
+      sm.textContent = String(c.q || "");
+      det.append(sm, el("p", "", c.a || ""));
+      box.appendChild(det);
+    });
+  }
+  srcLine(box, d.docs);
+  box.appendChild(el("p", "note", "生成於 " + String(rec.createdAt || "").slice(0, 10)));
+}
+async function genLesson(n) {
+  if (!aiOn || lsBusy) return;
+  const prompt = [
+    "你係香港 HKIE Structural 考試導師。為 Leo 今週嘅溫習主題寫一份主動導讀（15 分鐘睇完），等佢開書之前已經知道重點、陷阱同考試點問。", LEO, STYLE,
+    weekText(n), AMEND,
+    "已核實嘅資料：\n" + factsText(),
+    "HKIE design paper 2009–2025 題目（past 只可以揀呢度嘅年份同題號）：\n" + pastText(),
+    "Leo 嘅文件（docs 只可以揀呢度嘅 key）：\n" + libText(),
+    '只回覆一個 JSON object：{"overview":"3–4 句：今週學乜、點解重要","concepts":[{"name":"概念","explain":"3–5 句，講清楚原理同設計要點","hk":"香港 code / 實務重點，1–2 句"}],"footbridge":"用 footbridge / 橋樑經驗類比，1–2 句","trap":"考生最常犯嘅錯，1–2 句","example":{"problem":"一條 5–10 分鐘嘅速算或判斷題，俾具體數字","solution":"分步答案，可以用 - 列點"},"past":[{"year":2023,"q":5,"how":"呢題點用到今週內容"}],"checks":[{"q":"自我檢查問題","a":"答案 1–3 句"}],"docs":["0–4 個 key"]}',
+    "concepts 3–4 個；past 0–3 條（冇相關就俾空 array）；checks 3 條。",
+  ].join("\n\n");
+  lsBusy = true;
+  $("lsGen").disabled = true;
+  busy($("lsStatus"), "AI 寫緊 W" + n + " 導讀…（30–90 秒）");
+  try {
+    const data = await sample.json(prompt, { cache: false });
+    const rec = { week: n, data, createdAt: new Date().toISOString() };
+    lessons[wkId(n)] = rec;
+    if (selected === n) renderLesson();
+    $("lsStatus").textContent = "";
+    if (aiDb) await aiDb.doc("lessons/" + wkId(n)).set(rec).catch(() => {});
+  } catch (e) { aiFail(e, $("lsStatus")); }
+  finally { lsBusy = false; $("lsGen").disabled = false; }
+}
+
+/* Chat tutor */
+let chTurns = [], chCtl = null;
+const CH_CHIPS = ["用 5 點講今週 topic 最重要嘅嘢", "用 footbridge 經驗類比今週 topic", "MCQ 會點考今週 topic？出 2 條俾我", "Approval、consent、OP 嘅流程同時限", "Temporary works 邊類要 RSE 批？", "Scheme 題點樣令兩個 scheme 夠 distinct？"];
+function chRules() {
+  return [
+    "你係香港 HKIE Structural 考試導師，同 Leo 一對一傾偈。", LEO, STYLE,
+    "回答要精簡（一般 150–350 字），用列點，最後可以反問一條幫佢諗深一層嘅問題。引用 code / 法例時講埋文件名；唔肯定就叫佢去 Leo 嘅文件核對。",
+    "Leo 而家睇緊：\n" + weekText(selected), AMEND,
+    "已核實嘅資料：\n" + factsText(),
+    "Leo 嘅文件：\n" + libText(),
+  ].join("\n\n");
+}
+function chRender() {
+  const log = $("chLog");
+  log.textContent = "";
+  chTurns.forEach((t) => {
+    const d = el("div", "msg " + (t.role === "user" ? "me" : "ai"));
+    if (t.role === "user") d.textContent = t.content; else mdRender(d, t.content);
+    log.appendChild(d);
+  });
+  log.scrollTop = log.scrollHeight;
+}
+async function chSend(text) {
+  const q = String(text || $("chIn").value).trim();
+  if (!q || !aiOn || chCtl) return;
+  $("chIn").value = "";
+  chTurns.push({ role: "user", content: q });
+  chTurns = chTurns.slice(-12);
+  chRender();
+  const bubble = el("div", "msg ai", "諗緊…");
+  $("chLog").appendChild(bubble);
+  chCtl = new AbortController();
+  $("chSend").disabled = true; $("chStop").hidden = false; $("chStatus").textContent = "";
+  try {
+    const turns = chTurns[0].role === "user" ? chTurns : chTurns.slice(1);
+    const { text: ans } = await sample([{ role: "user", content: chRules() }, ...turns], {
+      cache: false, signal: chCtl.signal,
+      onText: ({ text: t }) => { mdRender(bubble, t); $("chLog").scrollTop = $("chLog").scrollHeight; },
+    });
+    chTurns.push({ role: "assistant", content: ans });
+  } catch (e) {
+    if (e && e.text) chTurns.push({ role: "assistant", content: e.text });
+    else bubble.remove();
+    aiFail(e, $("chStatus"));
+  } finally {
+    chCtl = null; $("chSend").disabled = false; $("chStop").hidden = true;
+    chRender();
+  }
+}
+
+/* Scheme drill */
+let drQ = null, drCtl = null, drills = [];
+function renderDrillHist() {
+  const n = drills.length;
+  const last = drills.slice(-3).reverse().map((d) => d.year + " Q" + d.q + " " + ({ pass: "✔", borderline: "△", fail: "✕" }[d.verdict] || "")).join("、");
+  $("drHist").textContent = n ? "已練 " + n + " 次" + (last ? "，最近：" + last : "") : "";
+}
+function drPick() {
+  const type = $("drType").value;
+  const pool = PAST.filter((q) => q[3] === type && q[0] >= 2013);
+  drQ = pool[Math.floor(Math.random() * pool.length)];
+  const box = $("drQ");
+  box.textContent = "";
+  const c = el("div", "drillq");
+  c.appendChild(el("b", "", drQ[0] + " Q" + drQ[1] + "：" + drQ[2]));
+  if (drQ[4]) c.appendChild(el("span", "muted", "重點限制：" + drQ[4]));
+  const a = docLink("pp" + drQ[0], "打開原題睇完整 brief（先睇清楚 client requirements 先寫）");
+  c.appendChild(a);
+  box.appendChild(c);
+  $("drForm").hidden = false;
+  $("drOut").textContent = "";
+  $("drA").value = ""; $("drB").value = ""; $("drR").value = "";
+}
+async function drGrade() {
+  if (!drQ || !aiOn || drCtl) return;
+  const A = $("drA").value.trim(), B = $("drB").value.trim();
+  if (!A || !B) { $("drStatus").textContent = "兩個 scheme 都要寫"; $("drStatus").className = "status err"; return; }
+  const rules = SCORE.map((b) => b.h + "：\n" + b.items.map((t) => "- " + t).join("\n")).join("\n\n");
+  const prompt = [
+    "你係 HKIE Structural design paper 嘅考官，批改考生 Section A 嘅 scheme 要點（考生只寫咗大綱，唔係完整答卷）。", STYLE,
+    "題目：" + drQ[0] + " Q" + drQ[1] + " " + drQ[2] + "（" + PTYPE[drQ[3]] + "）。重點限制：" + (drQ[4] || "（考生自己睇原題）") + "。你冇完整 brief，按題目性質同一般 client requirements 判斷；如果某個判斷要靠 brief 細節，就講明。",
+    "評分規則（非官方 GuideBook，根據往年 marking scheme）：\n" + rules,
+    "考生答案：\nScheme A：" + A + "\n\nScheme B：" + B + "\n\n建議：" + ($("drR").value.trim() || "（冇寫）"),
+    '只回覆一個 JSON object：{"verdict":"pass|borderline|fail","distinct":{"ok":true,"why":"1–2 句"},"viable":{"ok":true,"why":"1–2 句，指出邊個 scheme 有咩問題"},"deductions":[{"item":"扣分位","marks":-5,"why":"1 句"}],"good":["做得好嘅地方"],"improve":["最重要嘅 2–4 個改善"],"outline":{"A":"考官心目中一個合理 scheme 嘅 3–5 句大綱","B":"另一個 distinct scheme 嘅 3–5 句大綱"}}',
+  ].join("\n\n");
+  drCtl = new AbortController();
+  $("drGrade").disabled = true; $("drStop").hidden = false;
+  busy($("drStatus"), "考官批改緊…（30–90 秒）");
+  try {
+    const r = await sample.json(prompt, { cache: false, signal: drCtl.signal });
+    const box = $("drOut");
+    box.textContent = "";
+    const v = ["pass", "borderline", "fail"].includes(r.verdict) ? r.verdict : "borderline";
+    box.appendChild(el("span", "vbadge " + v, { pass: "大致合格", borderline: "邊緣", fail: "會 FAIL" }[v]));
+    const ok = (x, label) => { if (!x) return; const b = el("div", "box" + (x.ok ? "" : " warn")); b.appendChild(el("b", "", (x.ok ? "✔ " : "✕ ") + label + "：")); inline(b, String(x.why || "")); box.appendChild(b); };
+    ok(r.distinct, "Distinct"); ok(r.viable, "Viable");
+    const ded = Array.isArray(r.deductions) ? r.deductions : [];
+    if (ded.length) { box.appendChild(el("h4", "", "扣分位")); const ul = document.createElement("ul"); ded.forEach((d) => ul.appendChild(el("li", "", d.item + "（" + d.marks + "）：" + (d.why || "")))); box.appendChild(ul); }
+    for (const [k, label] of [["good", "做得好"], ["improve", "要改善"]]) {
+      const arr = Array.isArray(r[k]) ? r[k] : [];
+      if (!arr.length) continue;
+      box.appendChild(el("h4", "", label));
+      const ul = document.createElement("ul"); arr.forEach((t) => ul.appendChild(el("li", "", t))); box.appendChild(ul);
+    }
+    if (r.outline) {
+      const det = document.createElement("details");
+      const sm = document.createElement("summary"); sm.textContent = "考官參考大綱（自己諗完先睇）";
+      det.append(sm, el("p", "", "A：" + (r.outline.A || "")), el("p", "", "B：" + (r.outline.B || "")));
+      box.appendChild(det);
+    }
+    box.appendChild(el("p", "note", "AI 批改只係參考，評分規則來自非官方 GuideBook。"));
+    $("drStatus").textContent = "";
+    if (aiDb) await aiDb.collection("drills").add({ year: drQ[0], q: drQ[1], verdict: v, date: todayStr() }).catch(() => {});
+  } catch (e) { aiFail(e, $("drStatus")); }
+  finally { drCtl = null; $("drGrade").disabled = false; $("drStop").hidden = true; }
+}
+
+/* Flashcard explainer */
+let fcCtl = null;
+async function fcExplain() {
+  if (!aiOn) return;
+  const [topic, q, a, src] = fcDeck()[fc];
+  if (fcCtl) fcCtl.abort();
+  fcCtl = new AbortController();
+  const out = $("fcAiOut");
+  fcAiFor = q;
+  out.hidden = false;
+  out.textContent = "";
+  busy($("fcAiStatus"), "AI 解釋緊…");
+  const prompt = [
+    "你係香港 HKIE Structural 考試導師。用 150–250 字詳細解釋以下考試要點卡：點解係咁、背後原理、一個香港實際例子，同埋考試可能點樣變化去考。", LEO, STYLE,
+    "卡片：" + q + "\n答案：" + a + (src ? "\n出處：" + LIB[src].t : ""),
+    "用列點，最後加一行「記憶法：…」。",
+  ].join("\n\n");
+  try {
+    await sample(prompt, { signal: fcCtl.signal, onText: ({ text: t }) => { mdRender(out, t); $("fcAiStatus").textContent = ""; } });
+    $("fcAiStatus").textContent = "";
+  } catch (e) { aiFail(e, $("fcAiStatus")); }
+  finally { fcCtl = null; }
+}
+
+async function initAI() {
+  [aiDb, sample] = await Promise.all([claude.use("db"), claude.use("sample")]);
+  if (!sample) {
+    $("genBtn").hidden = true;
+    $("qzStatus").textContent = "呢個檢視模式用唔到測驗功能。";
+    $("aiOff").hidden = false;
+    $("aiOff").textContent = "呢個檢視模式用唔到 AI 功能（要喺 claude.ai 登入後打開）。";
+    $("fcAi").hidden = true;
+    return;
+  }
+  aiOn = true;
+  if (aiDb) {
+    aiDb.collection("lessons").onSnapshot((snap) => {
+      const next = {};
+      snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
+      lessons = next;
+      renderLesson();
+    }, () => {});
+    aiDb.collection("drills").onSnapshot((snap) => {
+      drills = snap.docs.filter((d) => d.exists).map((d) => d.data()).sort((x, y) => String(x.date).localeCompare(String(y.date)));
+      renderDrillHist();
+    }, () => {});
+  }
+  await genDaily(false);
+  // The current week's lesson is generated once and stored for every later visit.
+  const cw = currentWeek();
+  if (!lessons[wkId(cw)] && aiOn) {
+    let exists = false;
+    if (aiDb) { try { exists = (await aiDb.doc("lessons/" + wkId(cw)).get()).exists; } catch (e) { /* generate */ } }
+    if (!exists) genLesson(cw);
+  }
+}
+
+$("dyRegen").onclick = () => genDaily(true);
+$("lsGen").onclick = () => genLesson(selected);
+$("chSend").onclick = () => chSend();
+$("chStop").onclick = () => chCtl && chCtl.abort();
+$("chClear").onclick = () => { chTurns = []; chRender(); };
+$("chIn").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) chSend(); });
+CH_CHIPS.forEach((t) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t; b.onclick = () => chSend(t); $("chChips").appendChild(b); });
+$("drPick").onclick = drPick;
+$("drGrade").onclick = drGrade;
+$("drStop").onclick = () => drCtl && drCtl.abort();
+$("fcAi").onclick = fcExplain;
 
 /* ---------- wire up ---------- */
 $("prevW").onclick = () => selectWeek(selected - 1);
@@ -1461,6 +2043,6 @@ $("driveRoot").href = DRIVE_ROOT;
 renderAll(); renderMilestones(); renderCodes(); renderLibrary(); renderExaminer(); renderFcFilter(); renderCard();
 renderScore(); renderPastStats(); renderPast();
 $("ppMore").onclick = () => { ppAll = !ppAll; renderPast(); };
-if (window.claude && claude.use) { initDb(); initSample(); }
-else { $("dbBanner").hidden = false; $("saveBtn").disabled = true; $("genBtn").hidden = true; }
+if (window.claude && claude.use) { initDb(); initAI(); }
+else { $("dbBanner").hidden = false; $("saveBtn").disabled = true; $("genBtn").hidden = true; $("fcAi").hidden = true; $("aiOff").hidden = false; $("aiOff").textContent = "呢個檢視模式用唔到 AI 功能。"; }
 </script>

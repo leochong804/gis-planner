@@ -3,6 +3,8 @@
 > 目的：補 MCQ 同 interview 入面「Statutory Ordinance & Regulation」同「Other」兩部分嘅弱項。
 > 用法：照下面嘅 folder 結構喺 Google Drive `HKIE_Structural` 開一個 `Statutory_Other` 資料夾，逐份下載放入去，剔咗就代表有咗。放好之後話我知，我會將佢哋加入 dashboard 嘅資料庫同每週閱讀。
 >
+> **進度（2026-10-26）**：`01_Buildings Ordinance`、`02_PNAP`、`03_Supervision`、`04_BA_Forms` 已放好（15 份），已經加入 dashboard；`05_Fire` 至 `09_Cost_PM` 未放。
+>
 > ★ = MCQ 必備（Trial MCQ V1 / V2 有考類似題目）；☆ = 有時間先睇。
 > ✅ = 版本 / Cap. 號已經喺網上核實（2026-10-26）；⚠️ = 未核實，下載嗰陣喺官方網站對返。
 
@@ -25,10 +27,10 @@
 | | 文件 | 重點睇乜 | 狀態 |
 |---|---|---|---|
 | ★ | **Buildings Ordinance, Cap. 123** | s.4（委任 AP / RSE / RGE）、s.14（approval 同 consent）、s.16（拒批理由）、s.21（OP）；Minor Works 同 A&A 豁免條文 | ✅ |
-| ★ | **Building (Administration) Regulations, Cap. 123A** | 圖則提交、consent 程序、監工、完工證明、Scheduled Areas 附表 | ✅ Cap. 號 |
+| ★ | **Building (Administration) Regulations, Cap. 123A** | 圖則提交（reg 8、11）、approval 60 / 30 日（reg 30）、consent 28 日（reg 32）、A&A stability certificate（reg 18）、RC 監督（reg 41） | ✅ 已讀 |
 | ★ | **Building (Construction) Regulation, Cap. 123Q**（L.N. 5 of 2020，取代 Cap. 123B） | 12 Parts：材料、荷載、設計方法、strength / serviceability / stability、SI、foundations、retaining walls、excavation、external walls | ✅ |
 | ☆ | Building (Planning) Regulations, Cap. 123F | headroom、means of escape 相關條文（scheme 題會用到） | ✅ Cap. 號 |
-| ☆ | Building (Minor Works) Regulation | Minor works 分 Class I / II / III、指定項目 | ⚠️ Cap. 號自己對 |
+| ☆ | Building (Minor Works) Regulation, Cap. 123N | Minor works 分 Class I / II / III、指定項目 | ✅ |
 
 ### A2 · PNAP（`02_PNAP`）
 
@@ -38,7 +40,7 @@
 | ★ | PNAP 總索引（BD 網頁存成 PDF） | 搵 structural、foundation、site supervision、submission 相關嗰幾份 | — |
 | ★ | 你已經有：ADV-33（superstructure checklist）、APP-18（foundation，2025-09）、APP-57、APP-117（A&A wind） | 重溫，唔使再下載 | ✅ |
 | ★ | Railway protection 相關 PNAP + MTR 嘅 railway protection 指引 | Protection zone 內點樣做、要交乜（past paper 2015、2020、2024 都有） | ⚠️ 編號自己搵 |
-| ★ | Scheduled Areas 相關 PNAP（特別係 Scheduled Area No. 3 Mid-levels） | 額外 geotechnical 要求（2015、2020 有出） | ⚠️ 編號自己搵 |
+| ★ | Scheduled Areas 相關 PNAP（特別係 Scheduled Area No. 3 Mid-levels） | 額外 geotechnical 要求（2015、2020 有出）。留意 B(A)R 嘅附表已廢除，Scheduled Areas 列喺 BO 附表（⚠️ 自己對附表號） | ⚠️ 編號自己搵 |
 | ☆ | Precast、demolition、temporary works / hoarding 相關 PNAP | 施工題 | ⚠️ |
 
 ### A3 · Site supervision 同 TCP（`03_Supervision`）
