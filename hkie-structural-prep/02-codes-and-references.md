@@ -31,7 +31,7 @@
 | 法例 | 狀態 / 重點 | 狀態 |
 |---|---|---|
 | **Buildings Ordinance (Cap. 123)** | 主體法例；AP / RSE / RGE / RC 角色同責任、plan approval、consent to commence | ✅（概念） |
-| **Building (Construction) Regulation**（新） | 取代 1956 年版嘅 Building (Construction) Regulations (Cap. 123B)，共 12 Parts + Schedule，**改為 performance-based**：materials、dead / imposed / wind loads、design methodology、strength / serviceability / stability、construction methods（Parts 2–4）；site investigation、foundations、retaining walls、bulk excavation（Parts 5–7）；external walls、cladding（Parts 8–9）。有政府文件引用為 Cap. 123Q | ⚠️（生效日期同 Cap. 號未直接核對，W1 上 eLegislation 確認） |
+| **Building (Construction) Regulation**（新） | 取代 1956 年版嘅 Building (Construction) Regulations (Cap. 123B)，共 12 Parts + Schedule，**改為 performance-based**：materials、dead / imposed / wind loads、design methodology、strength / serviceability / stability、construction methods（Parts 2–4）；site investigation、foundations、retaining walls、bulk excavation（Parts 5–7）；external walls、cladding（Parts 8–9）。Cap. 123Q（L.N. 5 of 2020） | ✅ Cap. 號已核實（2026-10-26）；⚠️ 生效日期 W1 上 eLegislation 確認 |
 | Building (Administration) Regulations (Cap. 123A) | Submission 程序 | ❌（未有搜尋） |
 | Building (Planning) Regulations (Cap. 123F) | GFA、storey height 等（同 APP-5 transfer plate 豁免 GFA 有關） | ❌（未有搜尋） |
 
