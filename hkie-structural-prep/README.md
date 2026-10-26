@@ -84,6 +84,8 @@
 | `04-weekly-schedule.md` | 56 週倒數計劃（2026-10-26 至 2027 年 11 月考試週）＋ 補足實務經驗嘅方法（第 3 節） |
 | `progress-tracker.csv` | 每週進度記錄（可以用 Excel / Google Sheets 開） |
 | `05-practice-questions.md` | 按 topic 分類嘅自擬練習題方向 |
+| `06-past-paper-analysis.md` | 2009–2025 past paper 矩陣、分數結構、評分規則、要準備同展示乜 |
+| `study-dashboard.html` | 溫書 dashboard（已發佈做 private artifact）原始檔 |
 
 ## 4. 坦白講嘅風險評估
 

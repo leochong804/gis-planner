@@ -201,6 +201,31 @@ th { font-family: var(--f-display); font-weight: 600; letter-spacing: 0.06em; te
 .banner { background: var(--warn-soft); color: var(--ink); border: 1px solid var(--warn); padding: 10px 14px; font-size: 14px; }
 footer { font-size: 12.5px; color: var(--ink-2); }
 
+/* Past paper map + scoring */
+.ppstats { display: flex; flex-wrap: wrap; gap: 10px; }
+.ppstats .counter b { font-size: 22px; }
+.pprow { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--grid); }
+.pprow:first-of-type { border-top: 0; }
+.ppyear { display: grid; gap: 4px; align-content: start; }
+.ppyear a { font: 500 17px/1.1 var(--f-mono); }
+.ppyear .meta { display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.ppqs { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.pq { border: 1px solid var(--rule); border-left: 3px solid var(--ink-2); background: var(--paper); padding: 7px 10px; display: grid; gap: 3px; font-size: 13.5px; min-width: 0; }
+.pq.bridge { border-left-color: var(--pen); } .pq.aa { border-left-color: var(--warn); } .pq.special { border-left-color: var(--ok); }
+.pq .top { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.pq .qn { font-family: var(--f-mono); color: var(--ink-2); font-size: 12.5px; }
+.pq .ty { font-family: var(--f-display); font-size: 12px; letter-spacing: 0.05em; color: var(--ink-2); }
+.pq.bridge .ty { color: var(--pen); } .pq.aa .ty { color: var(--warn); } .pq.special .ty { color: var(--ok); }
+.pq .tt { font-weight: 500; overflow-wrap: anywhere; }
+.pq .kp { color: var(--ink-2); font-size: 13px; }
+.pq .sol { justify-self: start; font-size: 12px; color: var(--ok); background: var(--ok-soft); padding: 0 6px; border-radius: 2px; text-decoration: none; }
+.scgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px 24px; }
+.scblock { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.scblock h3 { font-size: 16px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; border-bottom: 1px dashed var(--rule); padding-bottom: 4px; }
+.scblock h3 a { font: 400 12px var(--f-body); }
+.scblock ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; }
+.scblock.fail h3 { color: var(--bad); }
+
 @media (max-width: 860px) {
   .grid2 { grid-template-columns: minmax(0, 1fr); }
   .head { grid-template-columns: 1fr; }
@@ -216,6 +241,9 @@ footer { font-size: 12.5px; color: var(--ink-2); }
   .kv dd { margin-bottom: 8px; }
   .counter { min-width: 0; flex: 1 1 40%; }
   .ms li { grid-template-columns: 1fr; gap: 0; }
+  .pprow { grid-template-columns: 1fr; gap: 6px; }
+  .ppyear { grid-auto-flow: column; justify-content: start; align-items: baseline; gap: 10px; }
+  .scgrid { grid-template-columns: minmax(0, 1fr); }
   #codeRows tr { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
   #codeRows td { border: 0; padding: 0; }
   #codeRows td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
@@ -405,6 +433,33 @@ footer { font-size: 12.5px; color: var(--ink-2); }
     </div>
   </div>
 
+  <!-- What earns marks -->
+  <section class="sheet" aria-labelledby="scTitle">
+    <div class="ref">Marks</div>
+    <div class="body">
+      <div class="sheet-title">
+        <h2 id="scTitle">點樣攞分：要展示乜</h2>
+        <span class="est">評分規則來自 Structural Fireman GuideBook，非 HKIE 官方</span>
+      </div>
+      <div class="scgrid" id="scList"></div>
+    </div>
+  </section>
+
+  <!-- Past paper map -->
+  <section class="sheet" aria-labelledby="ppTitle">
+    <div class="ref">Papers</div>
+    <div class="body">
+      <div class="sheet-title">
+        <h2 id="ppTitle">Past paper 地圖 2009–2025</h2>
+        <span class="muted" style="font-size:13px">撳年份開原題；W 號係用嗰份卷嘅週次</span>
+      </div>
+      <div class="ppstats" id="ppStats"></div>
+      <div class="fcfilter" id="ppFilter" role="group" aria-label="篩選題型"></div>
+      <div id="ppList"></div>
+      <button type="button" id="ppMore" style="justify-self:start"></button>
+    </div>
+  </section>
+
   <footer>考試格式：MCQ 1 小時 + Design 6.5 小時（Section A 兩個 distinct and viable schemes；Section B calcs + dimensioned framing plans；任何一個 section 低過 40% 即 FAIL）＋ 約 1 小時 competence-based interview。</footer>
 </div>
 
@@ -439,19 +494,59 @@ const LIB = {
   steel_lsd: { t: "Structural Steelwork Design to Limit State Theory", id: "12CdK5Bnp4I331M8Vpa-yxOiuHgVOXPnj", g: "book" },
   kassimali: { t: "Kassimali, Structural Analysis (4th Ed.)", id: "1wUOrJEdrvW1xVE3c8ecrGXtbggs0oaQM", g: "book" },
   megson:    { t: "Megson, Structural and Stress Analysis", id: "1w7xuqYYXS5Sr4R_foD3yhk_PvYO3n2Lu", g: "book" },
-  exam_mastery: { t: "Exam Mastery – HKIE", id: "1jq9KuQ-ifsPZAZT9Gnm_VAgStB4UwPg3", g: "exam", big: true },
-  istructe_guide: { t: "GuideBook: Preparation for IStructE Exam", id: "1ZjizhOPEM5GFBa8wfMtgeXWY4lEiOjKh", g: "exam", big: true },
+  exam_mastery: { t: "Exam Mastery – HKIE（原檔）", id: "1jq9KuQ-ifsPZAZT9Gnm_VAgStB4UwPg3", g: "exam", big: true },
+  istructe_guide: { t: "GuideBook: IStructE / HKIE 備考（原檔）", id: "1ZjizhOPEM5GFBa8wfMtgeXWY4lEiOjKh", g: "exam", big: true },
+  em1:  { t: "Exam Mastery p1–31：2019 Q3 Workshop（Section 1a）", id: "10nUiqOG2jtg4kz8yJVsVuug-Zu39e3Cq", g: "sol" },
+  em2:  { t: "Exam Mastery p32–57：2019 Q3（steel scheme、wind、calcs、plans）", id: "13aj74NvF0UJmpibHPVud_yc4gGcQ1eS8", g: "sol" },
+  em3:  { t: "Exam Mastery p58–87：2020 Q3 Composite Shopping Arcade", id: "1vzJgyOe8CLmEEJ1OAa-4aLUs040LCQZ1", g: "sol" },
+  em4:  { t: "Exam Mastery p88–103：2020 Q3（wind、calcs）", id: "1zI_ykefMUc88saAFf9CxLeL7iYWd7UJ9", g: "sol" },
+  em5:  { t: "Exam Mastery p104–115：2020 Q3 尾 / 2022 Q3 開頭", id: "1wy6nwTQn9iHHhPjnfbExGkO-_KwObeLT", g: "sol" },
+  em6:  { t: "Exam Mastery p116–134：2022 Q3 Office with Sky Garden", id: "1mXuH2uz7PDAVw-r0OXxJSF_VAaHsJSma", g: "sol" },
+  em7:  { t: "Exam Mastery p135–155：2022 Q3（transfer plate、calcs）", id: "1qYbIdws99C0jXE3Jl1Bx2frZc8PQ-E3N", g: "sol" },
+  em8:  { t: "Exam Mastery p156–175：2024 Q4 Resort Hotel（schemes）", id: "1CYrVtTe2zQvRdWpPW62uwpvOVma_DaBQ", g: "sol" },
+  em9:  { t: "Exam Mastery p176–187：2024 Q4（pool deck、recommendation）", id: "1ZW5eAl9sMLRNbYxqv-ZKlha-yq_Vg0_H", g: "sol" },
+  em10: { t: "Exam Mastery p188–211：2024 Q4（wind、calcs、plans）", id: "1hahOs4tTJ30qh246xHFHg4Uh2W2KMyPo", g: "sol" },
+  pp_guide25: { t: "HKIE 2025 Past Paper Guide（Q1、Q5 scheme 思路）", id: "1wFk7Mc7canFzDFEi0XGl20xaCSJiuB2U", g: "sol" },
+  gb1: { t: "GuideBook p1–30：考試格式、HKIE marking scheme、design appraisal", id: "1USIqBhdp6nTO4st8vdMrwAQX4EhZ7tNm", g: "guide" },
+  gb2: { t: "GuideBook p31–60：RC scheme（framing、load path、basement）", id: "1oLakdPteb-Fdgh_TbdvNlM5IWuhqlIAx", g: "guide" },
+  gb3: { t: "GuideBook p61–90：steel scheme、foundation scheme", id: "1C10mGGLTyy79LL4qRidvSKTqjnzpl2vT", g: "guide" },
+  gb4: { t: "GuideBook p91–120：recommendation、letter、1(b) wind（HKIE）", id: "13PQUATTM2SwKNtKgHkXS22sWpPM0dxyE", g: "guide" },
+  gb5: { t: "GuideBook p121–150：2(c) concrete / steel calcs", id: "12Nrjsoar7ygg-MxSLDWFm3bn790XFIOj", g: "guide" },
+  gb6: { t: "GuideBook p151–180：foundation calcs、drawings", id: "1BqRz_jWFu3ErICa6U7-Mg41dt1KSYidH", g: "guide" },
+  gb7: { t: "GuideBook p181–206：details、method statement、programme、past paper 分析", id: "1y1qCKLv3OSnzPJ3DB4WJAfrXvEZNMcLe", g: "guide" },
+  gb_v32: { t: "Guidebook Update v3.2：distinct transfer 機制、framing plan checklist", id: "1ws2QVhmeVF9NP443hjWVxMfV2LGI6knU", g: "guide" },
+  gb_v30: { t: "Guidebook Update v3.0：letter to client（IStructE）", id: "1jwOTvwm0uKcgmQFnSBPTiU29ooOsuc9g", g: "guide" },
+  plan16: { t: "HKIE 16 週溫書 Plan & Checklist", id: "1muIjBS85J5lKXrcC2nwyra2YmX8EJRCu", g: "guide" },
+  mcq_v1: { t: "MCQ Trial V1：Structural Behaviour & Engineering Judgement", id: "1J4gTg5jl7oYH1pzX4GkXFrRoljY7UTiA", g: "mcq" },
+  mcq_v2: { t: "MCQ Trial V2：Construction Practice & Professional Judgement", id: "1mHPiUodTcI-BsNBHKhb6q9rszokBXtCG", g: "mcq" },
+  pp2025: { t: "HKIE Past Paper 2025", id: "1NcoJU34sLYtimG0sSiLuqHJY0N7fIGax", g: "pp" },
+  pp2024: { t: "HKIE Past Paper 2024", id: "1BmVT3rw0d79y11ctb_vz_SNm4arex6pt", g: "pp" },
+  pp2023: { t: "HKIE Past Paper 2023", id: "1nrmqiWpz1UjL_i7NWvmQMvjfdWwkzMXN", g: "pp" },
+  pp2022: { t: "HKIE Past Paper 2022", id: "1vu0bCnoc2BA6H501WvunNAHQHzzIe1mh", g: "pp" },
+  pp2021: { t: "HKIE Past Paper 2021", id: "10OsKtv-zU2bl2_SoNjCOGoWoV2pnboTH", g: "pp" },
+  pp2020: { t: "HKIE Past Paper 2020", id: "1T9vw6Nluu5gvJ-syalVVyTTJzO6wetXB", g: "pp" },
+  pp2019: { t: "HKIE Past Paper 2019", id: "1d2u2lWXDSELhJy3KgOjkM3JYtzqz9nDk", g: "pp" },
+  pp2018: { t: "HKIE Past Paper 2018", id: "1wESsib98rX9wVFH9cNamaMhd4GcwxSFc", g: "pp" },
+  pp2017: { t: "HKIE Past Paper 2017", id: "1NsALG1tTGStqrX-vMDL6RNDyxOUJ6LyH", g: "pp" },
+  pp2016: { t: "HKIE Past Paper 2016", id: "1hmXNUK4dVlYOIC8DXZdFwLVMyjZX2U3R", g: "pp" },
+  pp2015: { t: "HKIE Past Paper 2015", id: "14oi2t2N3csGUQdwr1TK1aZ7X3YgmjNwx", g: "pp" },
+  pp2014: { t: "HKIE Past Paper 2014", id: "1PwuZhDYxRN3ZumXm_2R6ysdh3ZyYCTY8", g: "pp" },
+  pp2013: { t: "HKIE Past Paper 2013", id: "1GERkH37cZ8zST-_aqP6r4M3hB5OjLXSf", g: "pp" },
+  pp2012: { t: "HKIE Past Paper 2012", id: "1FqhAGt33m2Otn9gQpRZhZBuDvj9q8byf", g: "pp" },
+  pp2011: { t: "HKIE Past Paper 2011", id: "1O51YB4RtdPHxPHI8YooYOGF3AlxsIg6C", g: "pp" },
+  pp2010: { t: "HKIE Past Paper 2010", id: "1E5e6V6HK1YOhnkhcGZhp6Ngdhtie6dcP", g: "pp" },
+  pp2009: { t: "HKIE Past Paper 2009", id: "1K2Ifi4KmE79owLCPOLhNRiPBURUFWNLt", g: "pp" },
   script23:  { t: "IStructE critiqued answer script, Feb 2023 Q2", id: "1iQPlzhXRU-Du2gBgx5rPSmo_LBlIiDhP", g: "exam" },
   crit_q1:   { t: "IStructE Chief Examiner critique, Jan 2024 Q1", id: "1aSYIHIOy-3Letr2XsDKo8SjdZReYUP63", g: "exam" },
   crit_q5:   { t: "IStructE Chief Examiner critique, Jan 2024 Q5", id: "1qjKETWsrgvSyf_5Splr_-zH1RrgD4Np2", g: "exam" },
   crit_q3:   { t: "IStructE Chief Examiner critique, Jul 2024 Q3", id: "1UVqSH_Oh89DmChDJ-4CsPR4ulRuDLw8f", g: "exam" },
 };
-const LIB_GROUPS = [["code", "Codes 同 amendments"], ["hb", "HKIE-ST 手冊同 HA manual"], ["note", "你嘅筆記"], ["book", "參考書"], ["exam", "考試資料"]];
+const LIB_GROUPS = [["pp", "HKIE past papers"], ["sol", "參考答案（Structural Fireman）"], ["guide", "答題指南"], ["mcq", "MCQ 練習"], ["exam", "IStructE 考官資料"], ["code", "Codes 同 amendments"], ["hb", "HKIE-ST 手冊同 HA manual"], ["note", "你嘅筆記"], ["book", "參考書"]];
 const driveUrl = (k) => "https://drive.google.com/file/d/" + LIB[k].id + "/view";
 
 /* Per-week reading from the Drive folder: [docKey, what to read]. Index 0 = W1. */
 const READING = [
-  [["exam_mastery", "睇目錄，標低講 HKIE 考試格式同 past paper 嘅章節"], ["script23", "成份睇一次：考官點評一份合格答卷嘅結構"], ["istructe_guide", "睇目錄"]],
+  [["pp2025", "睇晒 5 條題：題型、分數分配、client requirements 點寫"], ["gb1", "考試格式 + HKIE marking scheme（邊啲情況成份卷 FAIL）"], ["script23", "睇一次考官點評答卷結構"]],
   [["dil", "§2 Dead loads；§3.1–3.2（Table 3.2）；§3.6 partitions；§3.7 reduction（Tables 3.10–3.11）；App. A densities"]],
   [["wind", "§2.1–2.2 計算程序同 building forces；§3 design pressures；§3.4 topography；§4.2 force coefficients"], ["wind_a23", "Fig. 2-1/2-2：WTT 條件改咗"], ["wind_guide", "跟 worked example 計一次"]],
   [["cop_suc", "§2.1–2.4 basis of design、loads、materials；§4.2 durability；§4.3 fire"], ["suc_a24", "對照呢幾節有冇改"], ["suc_hb", "§2、§4 嘅解釋"]],
@@ -459,52 +554,52 @@ const READING = [
   [["cop_suc", "§6.1.5 flat slabs（包括 punching）；§5.2.7 slabs"], ["suc_hb", "flat slab 部分"], ["istructe_ec2", "flat slab initial sizing"]],
   [["cop_suc", "§6.2.1 columns；§6.2.2 walls；§5.3 second order effects"], ["ha_rc", "column 同 wall detailing"]],
   [["cop_suc", "§8 anchorage、laps；§9 detailing；§9.9 ductility；§6.5 corbels and nibs"], ["ha_rc", "同 code 條文對照 detail"]],
-  [["script23", "重睇 Section 1 嘅 sketches 同考官 comments"], ["crit_q5", "兩個 scheme 點樣出（cantilever canopy）"]],
+  [["pp2024", "讀 Q2 Trunk Road（bridge）同 Q4 Resort Hotel（building），只睇唔做"], ["script23", "重睇 Section 1 sketches 同考官 comments"], ["crit_q5", "兩個 scheme 點樣出"]],
   [["suos", "§7 classification；§8.2 restrained beams；§8.3 LTB；§10.2–10.4 composite beams、shear connection、composite slabs"], ["steel_hb", "composite beam example"], ["steel_lsd", "beam 章"]],
   [["suos", "§2.5.8 notional horizontal forces；§6.3 frame classification（λcr）；§6.4 imperfections；§8.7 compression；§8.9 combined；§8.11 portal frames；§6.10 bracing"], ["steel_hb", "second-order analysis example"]],
   [["suos", "§9.2 welds；§9.3 bolts；§9.4 baseplates；§5.4 human-induced floor vibration"], ["suos_a26", "§13.6.4 footbridge vibration（同你本行有關）、A2.5 AISC DG11、Eq. 9.9/9.10"], ["steel_note", "你自己嘅 highlight"]],
   [["fdn", "§5.1 general；§5.3 load capacity of piles；§5.4 common pile types；§5.5 pile caps"], ["cop_suc", "§6.7.3 pile caps；§9.7 foundations detailing"], ["fdn_hb", "pile 部分"]],
   [["fdn", "§2.2 bearing pressure；§2.3 settlement；§2.5.4 sliding、uplift、overturning；§4 shallow foundations；§5.2 NSF"], ["fdn_a25", "4 500 kPa、10 m overburden、E = 1.5N"], ["fdn_note", "你嘅 amendment 筆記"]],
-  [["dil", "Foreword：B(C)R 同 code 嘅關係；§1.1"], ["exam_mastery", "規管 / BD 程序嘅章節（如有）"]],
-  [["script23", "用考官 comments 做 self-check"]],
-  [["istructe_ec3", "scheme design 同 initial sizing 章"], ["istructe_ec2", "structural scheme 章"], ["script23", "Section 1 點樣寫"]],
+  [["dil", "Foreword：B(C)R 同 code 嘅關係；§1.1"], ["mcq_v2", "Building control：submission → approval → consent → OP / TOP"]],
+  [["mcq_v1", "MCQ drill：load path、transfer、punching、anchorage"], ["script23", "用考官 comments 做 self-check"]],
+  [["gb1", "Design appraisal 表、scheme options draft、distinct 清單"], ["gb_v32", "6 種 vertical transfer + 3 種 lateral system"], ["istructe_ec3", "scheme design 同 initial sizing 章"]],
   [["cop_suc", "§5.2.6 frames providing lateral stability；§5.4 shear walls"], ["kassimali", "approximate analysis 章"]],
   [["kassimali", "approximate analysis of frames（portal / cantilever method）"], ["cop_suc", "§7.3.2 excessive response to wind"]],
   [["wind", "§2.2 along-/across-wind 同 torsion；§2.4 acceleration；§5.2 size and dynamic factor；App. A1.2 return periods；App. C2 damping"], ["suos_a26", "§5.3.4 改咗：acceleration limit 跟返 HKWC（1 年同 10 年）"], ["wind_a23", "Fig. 5-2、App. C1 size factor"], ["wind_guide", "dynamic example"]],
   [["cop_suc", "§2.1.4 robustness；§6.4 ties and bridging elements"], ["suos", "§2.3.4 integrity and robustness；§2.5.9 key elements；§6.6.2 moment amplification"]],
-  [["cop_suc", "§5.5 transfer structures"], ["script23", "transfer truss sizing（考官：淨係 span/depth 唔夠）"]],
+  [["cop_suc", "§5.5 transfer structures"], ["em7", "2022 Q3：transfer plate at 10/F 參考答案"], ["script23", "transfer truss sizing（考官：淨係 span/depth 唔夠）"]],
   [["cop_suc", "§6.1.2 beams（deep beam shear）；§6.1.5 punching；§10.3.8 formwork and falsework"], ["reynolds", "deep beam 同 strut-and-tie"]],
   [["cop_suc", "§6.2.2 walls；§9.6 walls detailing；§9.9.3 ductility（walls）"], ["suc_hb", "walls 部分"]],
   [["istructe_ec2", "floor system 比較同 span tables"], ["istructe_ec3", "steel floor options"], ["cop_suc", "§12 prestressed（§12.4.2 flat slabs）"]],
-  [["suos", "§8.11 portal frames；§8.4 plate girders；§2.5.7 crane loads"], ["istructe_ec3", "long span / portal 章"], ["crit_q3", "大跨度：construction access 點樣決定 span"]],
+  [["suos", "§8.11 portal frames；§8.4 plate girders；§2.5.7 crane loads"], ["pp2024", "Q1 Workshop and Office：crane + 輕鋼 brief"], ["crit_q3", "大跨度：construction access 點樣決定 span"]],
   [["fdn", "§6.1 basements；§2.5.3 underground water；§2.5.4 uplift；§6.3 retaining walls"], ["dil", "§3.9 surcharges"]],
   [["fdn", "§6.2 diaphragm walls；§6.4 ground anchors；§7.2 對鄰近建築物嘅影響（Table 7.2）"], ["fdn_a25", "Amend. 5：Table 7.2 加咗 Land"]],
-  [["fdn", "§5.3 pile capacity；§5.5 pile caps；§2.3 settlement"], ["script23", "foundation 部分嘅考官 comments（冇 check soil capacity）"], ["cop_suc", "§6.7.3 pile caps"]],
+  [["fdn", "§5.3 pile capacity；§5.5 pile caps；§2.3 settlement"], ["em2", "2019 Q3：bored pile + uplift check（Foundation Code §5.1.6 / §5.3.3）"], ["cop_suc", "§6.7.3 pile caps"]],
   [["cop_suc", "§4.3 fire resistance；§3.7 elevated temperatures"], ["suos", "§12 fire resistant design"]],
   [["cop_suc", "§5.6 precast elements"], ["suos", "§10.5 composite columns"], ["suos_a26", "§10.5：CFST 用到 S690 / C80"]],
-  [["cop_suc", "§10.3.8 formwork and falsework；§10.3.10 construction joints；§7.2.4 early thermal cracking"], ["script23", "method statement 同 programme"]],
+  [["cop_suc", "§10.3.8 formwork and falsework；§10.3.10 construction joints；§7.2.4 early thermal cracking"], ["gb7", "Method statement checklist + programme（BA10 / BA14 → OP）"], ["mcq_v2", "Construction stage、striking、back-propping"]],
   [["suos", "§8.2.3 beams with web openings；§8.2.4 castellated beams"]],
-  [["script23", "對照答卷結構"], ["crit_q5", "兩個 distinct scheme"], ["crit_q1", "現有建築物改動嘅 scheme"]],
-  [["istructe_ec2", "calc 格式"], ["istructe_ec3", "calc 格式"]],
-  [["script23", "GA drawings 嘅考官 comments"]],
-  [["exam_mastery", "BD / 規管嘅章節"]],
-  [["script23", "用考官 comments 自評 Section A"], ["exam_mastery", "past paper 章節"]],
-  [["exam_mastery", "考試技巧章"], ["istructe_guide", "時間分配同答題結構"], ["script23", "成份重溫"]],
-  [["crit_q3", "Section 1a 嘅寫法"], ["exam_mastery", "past paper"]],
-  [["cop_suc", "做 index"], ["suos", "做 index"], ["wind", "做 index"], ["fdn", "做 index"], ["dil", "做 index"]],
-  [["exam_mastery", "past paper（full mock）"]],
-  [["script23", "對照你嘅 mock"]],
-  [["exam_mastery", "past paper Section A"]],
-  [["script23", "GA drawings"]],
-  [["exam_mastery", "past paper（full mock）"]],
-  [["cop_suc", "§5.5、§6.1.5（punching）"], ["fdn", "§6.1 basements"]],
-  [["suos", "§10.2–10.4"], ["dil", "Tables 3.2–3.11"], ["wind", "§3–§4"]],
-  [["exam_mastery", "past paper（full mock）"]],
-  [["crit_q1", "重溫"], ["crit_q3", "重溫"], ["crit_q5", "重溫"]],
-  [["exam_mastery", "兩份 past paper Section A"]],
-  [["exam_mastery", "past paper（full mock）"]],
-  [["suc_a24", "amendment 總複習"], ["suos_a26", "amendment 總複習"], ["wind_a23", "amendment 總複習"], ["fdn_a25", "amendment 總複習"]],
-  [["script23", "最後重溫考官 comments"]],
+  [["pp_guide25", "2025 Q1 / Q5：點樣由 constraints 諗出兩個 distinct scheme"], ["script23", "對照答卷結構"], ["crit_q1", "現有建築物改動嘅 scheme"]],
+  [["em1", "2019 Q3：Section 1(a) 全套答題框架"], ["em2", "Section 2 calcs 格式"], ["gb5", "2(c) calcs 範本"]],
+  [["gb_v32", "Framing plan checklist：1:500 graph paper、typical bay、legend"], ["em2", "2019 Q3 framing plans 參考"], ["script23", "GA drawings 嘅考官 comments"]],
+  [["mcq_v2", "Building control、contract admin MCQ"], ["gb1", "Major / minor non-compliance 清單"]],
+  [["pp2019", "Q3 Workshop：做 Section A（3 小時）"], ["em1", "做完先對照參考答案"], ["gb1", "用 marking scheme 自己扣分"]],
+  [["gb1", "Timetable：Section A 200 分鐘點分"], ["gb4", "1(b) wind：考官要求 + 冇 1.4 overload factor 扣 3 分"], ["em10", "2024 Q4：wind table + stability check"]],
+  [["pp2023", "Q5 Footbridge：做 Section A + 1(b)（bridge 題）"], ["crit_q3", "大跨 bridge scheme 寫法"]],
+  [["cop_suc", "做 index"], ["suos", "做 index"], ["wind", "做 index"], ["fdn", "做 index"], ["dil", "做 index"], ["mcq_v1", "MCQ drill"]],
+  [["pp2025", "Full mock：Q2 Pedestrian and Cycle Bridge（bridge）"], ["gb7", "做完用 method statement / programme checklist 自評"]],
+  [["script23", "對照你嘅 mock"], ["gb1", "用 marking scheme 扣分"], ["gb7", "programme：approval、consent、BA10 / BA14"]],
+  [["pp2020", "Q3 Composite Shopping Arcade：做 Section A"], ["em3", "對照參考答案"]],
+  [["pp2019", "Q3 Workshop：練 dimensioned framing plans"], ["em2", "framing plan 參考"], ["gb_v32", "framing plan checklist"]],
+  [["pp2022", "Full mock：Q3 Office Building with Open Sky Garden（building）"], ["em6", "做完先對照參考答案"], ["em7", "transfer plate + calcs"]],
+  [["cop_suc", "§5.5、§6.1.5（punching）"], ["fdn", "§6.1 basements"], ["em7", "2022 Q3 transfer plate calc"]],
+  [["suos", "§10.2–10.4"], ["dil", "Tables 3.2–3.11"], ["wind", "§3–§4"], ["mcq_v1", "MCQ drill"], ["mcq_v2", "MCQ drill"]],
+  [["pp2024", "Full mock：Q2 Trunk Road above existing Roadway（bridge）"]],
+  [["crit_q1", "重溫"], ["crit_q3", "重溫"], ["crit_q5", "重溫"], ["gb4", "1(b) wind 再溫"]],
+  [["pp2021", "Q4 Footbridge：做 Section A"], ["pp2023", "Q2 Library Building：做 Section A"]],
+  [["pp2025", "Full mock：Q5 Laboratory cum Office（building）"], ["pp_guide25", "做完對照 Q5 scheme 思路"]],
+  [["suc_a24", "amendment 總複習"], ["suos_a26", "amendment 總複習"], ["wind_a23", "amendment 總複習"], ["fdn_a25", "amendment 總複習"], ["gb7", "method statement checklist"]],
+  [["script23", "最後重溫考官 comments"], ["gb1", "marking scheme 再睇一次"]],
   [],
   [],
 ];
@@ -534,6 +629,138 @@ const EXAMINER = [
     ["Programme 要列出主要 order dates", "script23"],
     ["俾 client 嘅信：除咗結構影響，仲要講其他後果（例如 riser 尺寸）", "script23"],
     ["可以加：sustainability、長跨度 propping / pre-camber", "script23"],
+  ]},
+];
+/* HKIE past papers in the Drive folder: [year, question, title, type, key point, solution doc key or null]. */
+const PAST = [
+  [2025, 1, "Mountain Top Observation Deck", "building", "10 m RC cantilever 平台、斜坡唔准落 foundation、St = 1.8", "pp_guide25"],
+  [2025, 2, "Pedestrian and Cycle Bridge across Waterfront", "bridge", "15 m 航道、straight + circular ramp ≤ 8%、SDM、method + programme 各 10 分", null],
+  [2025, 3, "Joint User Complex in Urban Area", "building", "15 層 tower + annex 重疊、2 層 basement、transfer、25 kPa landscape roof", null],
+  [2025, 4, "Shopping Mall with Skylight Roof", "building", "120 × 120 m、兩個 skylight scheme、basement method statement", null],
+  [2025, 5, "Laboratory cum Office Institutional Building", "building", "42 × 24 m column-free auditorium、隔籬歷史建築", "pp_guide25"],
+  [2024, 1, "Workshop and Office", "building", "輕鋼、20 t overhead crane、workshop 要兩個 foundation scheme", null],
+  [2024, 2, "Trunk Road above existing Roadway", "bridge", "現有 pier 有荷載上限、LM1 / LM3 SV196、臨時交通管理", null],
+  [2024, 3, "Laboratory cum Supercomputing Centre", "building", "25 kPa、65 m 先到 rock、soil load", null],
+  [2024, 4, "Resort Hotel", "building", "6 層 RC + pool deck 喺 rock slope 上", "em8"],
+  [2024, 5, "Cultural Performance Building above MTR facility", "building", "唔准加荷載落 MTR 建築、3 m protection zone", null],
+  [2023, 1, "Shopping Mall", "building", "220 × 85 m、120 × 30 m skylight、20 m grid、兩個 foundation scheme", null],
+  [2023, 2, "Library Building", "building", "兩級平台 + 現有擋土牆", null],
+  [2023, 3, "Community and Sports Centre", "building", "3 層 basement、籃球場、uplift", null],
+  [2023, 4, "Change of Use of an Existing Building", "aa", "A&A、APP-117 wind 檢查、transformer room 搬位", null],
+  [2023, 5, "Footbridge over Drainage Channel", "bridge", "預留 link bridge、兩個 foundation scheme、每晚封一條行車線", null],
+  [2022, 1, "Data Centre over Vehicular Tunnel", "building", "20 kPa、隧道應力變化 ≤ 20 kPa、28.8 m 淨跨", null],
+  [2022, 2, "Factory Conversion with Roof Top Extension", "aa", "A&A、加 3 層、demolition method statement", null],
+  [2022, 3, "Office Building with Open Sky Garden", "building", "transfer、slender columns、宗教建築用淺基礎", "em6"],
+  [2022, 4, "Highway Bridge alongside existing", "bridge", "航道、跨內唔准有 movement joint", null],
+  [2022, 5, "Grand Stand with Roof", "building", "輕鋼 cantilever roof、20 m column spacing", null],
+  [2021, 1, "Commercial Development", "building", "上層有柱、下層淨係 core → 大 transfer；斜坡地盤近海堤", null],
+  [2021, 2, "Sports Center", "building", "basement + 6 層 tower、swimming pool", null],
+  [2021, 3, "Art Gallery", "building", "72 × 72 m glass roof、全鋼", null],
+  [2021, 4, "Footbridge across Highway (15° skew)", "bridge", "ramp、live load vibration、每晚封一條線", null],
+  [2020, 1, "Airport Concourse", "building", "大跨、施工期高度限制、progressive collapse", null],
+  [2020, 2, "Showroom", "building", "wind + soil + uplift 佔 15 分", null],
+  [2020, 3, "Composite Shopping Arcade", "building", "MTR protection zone、Scheduled Area No. 3", "em3"],
+  [2020, 4, "Railway Viaduct", "bridge", "35° skew、週末 possession", null],
+  [2019, 1, "Sports Stadium", "building", "60 m 淨跨、green roof", null],
+  [2019, 2, "Student Hostel Extension", "building", "G/F 羽毛球場、culvert、precast façade", null],
+  [2019, 3, "Workshop", "building", "20 層、transformer delivery route、隔籬戰前樓", "em1"],
+  [2019, 4, "Pedestrian / Cycle Bridge over Railway", "bridge", "機場附近限高、星期日 possession", null],
+  [2018, 1, "Aircraft Hangar by the Seaside", "building", "130 × 130 m structure-free zone", null],
+  [2018, 2, "Research Centre", "building", "exhibition hall transfer、30° slope", null],
+  [2018, 3, "Extension of Logistic Centre", "building", "fast-track、PPV ≤ 5 mm/s、footbridge", null],
+  [2018, 4, "Office / Hotel Development", "building", "40 層、MTR、marine deposit", null],
+  [2018, 5, "Bridge over Channel", "bridge", "河道內唔准有臨時工程", null],
+  [2017, 1, "Hotel Annex", "building", "90 × 55 m ballroom、green roof 報告", null],
+  [2017, 2, "Shopping Center", "building", "尖沙咀、ELS", null],
+  [2017, 3, "Industrial Building", "building", "transfer + corbel", null],
+  [2017, 4, "Workshop Craneage", "building", "海邊、吊機伸出海堤", null],
+  [2017, 5, "Road Bridge with Observation Platforms", "bridge", "航道、晚間封航", null],
+  [2016, 1, "Maritime Museum", "building", "斜坡頂、15 m cantilever", null],
+  [2016, 2, "Car Park / Swimming Pool", "building", "split-level", null],
+  [2016, 3, "Commercial Building", "building", "refuge floor transfer", null],
+  [2016, 4, "Institution Building", "building", "7 層", null],
+  [2016, 5, "Footbridge with Green Roof", "bridge", "連接兩座建築物", null],
+  [2015, 1, "Observation Tower", "special", "200 m 高", null],
+  [2015, 2, "Sports Hall", "building", "fast-track 採購報告", null],
+  [2015, 3, "Office Building", "building", "Scheduled Area No. 3、MTR 隧道", null],
+  [2015, 4, "Community Center", "building", "32 × 40 m 球場", null],
+  [2015, 5, "Road Bridge Extension", "bridge", "唔准用 truss 或 cable", null],
+  [2014, 1, "Office with Integral Car Parking", "building", "斜坡地盤", null],
+  [2014, 2, "Commercial Project", "building", "分期發展、填海地", null],
+  [2014, 3, "Commercial Building", "building", "column-free foyer、stability check", null],
+  [2014, 4, "Large Span Exhibition Centre", "building", "240 × 40 m column-free", null],
+  [2014, 5, "Aircraft Hangar (A380)", "building", "限高 48 m", null],
+  [2014, 6, "Road Bridge over new highway", "bridge", "", null],
+  [2013, 1, "Water Tower", "special", "4 000 m³", null],
+  [2013, 2, "Hotel Building", "building", "basement、隔籬舊樓", null],
+  [2013, 3, "Office Tower over Freight Yard", "building", "鐵路保護區", null],
+  [2013, 4, "Steel Industrial Building", "building", "box culvert", null],
+  [2013, 5, "School Project", "building", "分期", null],
+  [2013, 6, "Road Bridge over Rivers", "bridge", "兩條河、航道", null],
+  [2012, 1, "Commercial and Hotel Development", "building", "溜冰場", null],
+  [2012, 2, "Shopping Mall", "building", "atrium、pile wall", null],
+  [2012, 3, "Football Stand in Structural Steel", "building", "", null],
+  [2012, 4, "Pedestrian Crossing", "bridge", "兩間學校之間、寫信俾 client", null],
+  [2012, 5, "Glass Winter Garden", "special", "玻璃結構", null],
+  [2012, 6, "Road Bridge over Railway and Nullah", "bridge", "", null],
+  [2011, 1, "Commercial Tower", "building", "32 層", null],
+  [2011, 2, "Office Building", "building", "填海地、岩面傾斜", null],
+  [2011, 3, "Building Façade Conservation", "special", "臨時支撐", null],
+  [2011, 4, "Public Transport Interchange", "building", "全鋼", null],
+  [2011, 5, "Aircraft Hangar (B747)", "building", "", null],
+  [2011, 6, "New Footbridge in a New Town", "bridge", "現有天橋下面、航道", null],
+  [2010, 1, "Office Building", "building", "party wall", null],
+  [2010, 2, "Dormitory Building", "building", "砌石擋土牆", null],
+  [2010, 3, "Underground Water Tank", "special", "", null],
+  [2010, 4, "Exhibition Centre", "building", "", null],
+  [2010, 5, "Light-weight Structure over Heritage Building", "special", "", null],
+  [2010, 6, "Urban Road Bridge", "bridge", "", null],
+  [2009, 1, "Cable Equipment Building", "building", "", null],
+  [2009, 2, "Aircraft Hangar", "building", "", null],
+  [2009, 3, "Highway Bridge", "bridge", "", null],
+];
+const PTYPE = { bridge: "Bridge", building: "Building", aa: "A&A", special: "特殊" };
+
+/* How marks are earned. Format and mark splits read from the 2023–2025 papers; marking rules from the GuideBook (unofficial, based on past HKIE marking schemes). */
+const SCORE = [
+  { h: "考試格式（2024–2025）", src: "pp2025", items: [
+    "MCQ 1 小時（10:00–11:00）+ Design 6.5 小時（12:00–18:30）；design paper 揀 ONE 條答",
+    "通常 5 條：3–4 條 building、1 條 bridge、有時 1 條 A&A；2023 年起冇再出 high-rise",
+    "Building 題：a 兩個 scheme 30｜b wind + stability 10｜c calcs 15｜d framing plans 20｜e details 10｜f foundation calcs 5–6｜g foundation plan 5–6｜h programme 3–5",
+    "Bridge 題：a 兩個 scheme 30｜b wind（SDM，橫向、縱向、uplift）10｜c calcs 20｜d plans + bearing articulation 20｜e method statement 10｜f programme 10",
+  ]},
+  { h: "成份卷 FAIL", src: "gb1", items: [
+    "淨係得一個 superstructure scheme，或者兩個唔夠 distinct，或者其中一個唔 viable",
+    "題目要兩個 foundation scheme 但你冇，或者其中一個唔 viable（題目寫明可以一個就得一個）",
+    "Major non-compliance：column 入咗 column-free zone、column spacing 唔夠、clear width 唔夠、用咗禁止嘅 inverted roof、foundation 入咗 MTR protection zone",
+  ]},
+  { h: "扣分位", src: "gb1", items: [
+    "每項扣 5 分（兩個 scheme 都犯都只扣一次）：headroom 唔夠、loading provision 漏咗、FRR 唔夠、cantilever 超過限制、structure 入咗 atrium void",
+    "冇 functional framing plan：扣 10",
+    "冇講 loading assumption、load path（包括 wind）同 stability：扣 10",
+    "冇清楚講建議邊個 scheme 同原因：扣 5",
+    "1(b) wind 冇乘 1.4 overload factor 又冇解釋：扣 3；要展示 Wind Code §2.2 同 §3.1",
+  ]},
+  { h: "答題框架（Section A）", src: "em1", items: [
+    "Introduction → Design appraisal 表（每個 constraint → 對設計嘅影響）",
+    "Scheme options draft 表：materials、grid、vertical transfer、lateral system、beam-slab、foundation",
+    "每個 scheme：description → functional framing plan → gravity 同 lateral load path → feasibility sizing（slab、beam、transfer、column）→ progressive collapse → basement → foundation",
+    "Recommendation 表：local practice、材料供應、flexibility、durability、使用空間、foundation 成本、速度",
+    "1(b)：wind description → assumptions → 分段 wind table → overturning FOS ≥ 1.5、sliding ≥ 1.5、uplift ≥ 1.1",
+  ]},
+  { h: "出 scheme 嘅實用規則", src: "em1", items: [
+    "第一步：列晒每層 headroom 同可用 structural zone；zone 特別大嗰層通常就係叫你做 transfer",
+    "RC 大約 900 mm structural zone → grid 10–12 m；steel composite 可以更大跨",
+    "Column 尺寸估算：RC 4–8 層 1 m、8–16 層 1.5 m、16–24 層 2 m；composite 4–12 層 1 m、12–20 層 1.5 m",
+    "估荷載：RC 每層 10 kPa、composite 7 kPa（已包 SDL）",
+    "Distinct：最少改 3–4 樣，例如材料、grid、transfer 方式同位置、lateral system、foundation",
+    "Framing plan 用 graph paper 1:500，畫一個完整 typical bay，其他寫 TYP.，用顏色 legend 分 column above / below / to be transferred",
+  ]},
+  { h: "Method statement 同 programme", src: "gb7", items: [
+    "順序：site set-up → condition survey + monitoring → ELS / 樁 → pile cap → basement → superstructure",
+    "隔籬有 MTR 或舊樓：講挖掘方法、dewatering、震動控制、monitoring trigger",
+    "地下水位高：sheet pile / pipe pile + grout curtain、pumping test",
+    "Programme 要由 plan approval、consent to commence 一直排到 OP，唔好淨係排施工",
   ]},
 ];
 const START = new Date(2026, 9, 26);
@@ -614,6 +841,14 @@ const CARDS = [
   ["code", "Concrete code 入面 transfer structure、shear wall、robustness 喺邊節？", "§5.5 transfer structures；§5.4 shear walls；§2.1.4 同 §6.4 robustness（ties、bridging elements）；§9.9 ductility detailing。", "cop_suc"],
   ["exam", "IStructE 考官：兩個 scheme 都用 piles 得唔得？", "得，但要講其他 foundation 方案點解唔 viable；淨係 framing distinct 而 foundation 冇比較會失分。", "script23"],
   ["exam", "IStructE 考官：transfer truss 點 size？", "要計（例如 M = PL、弦桿力 = M / 深度），唔可以淨係用 span/depth ratio。", "script23"],
+  ["mcq", "Approval of plans、consent to commence works 同 occupation permit 嘅次序？", "先 approval（BO s.14(1)(a)），再申請 consent 先可以動工（s.14(1)(b)），完工後申請 OP（s.21）。Programme 題要排埋呢幾步。", "mcq_v1"],
+  ["mcq", "拆模（striking formwork）應該根據乜決定？", "根據 concrete 實際達到嘅強度（例如 cube 或者 temperature-matched 試件），唔係淨係睇日數；仲要考慮上面樓層嘅施工荷載同 back-propping。", "mcq_v1"],
+  ["mcq", "Back-propping 有咩作用？", "將新澆樓板同施工荷載分散去下面幾層已建樓板，避免未夠強度嘅樓板超載。", "mcq_v1"],
+  ["mcq", "Pile integrity test 同 load test 有咩分別？", "Integrity（sonic logging、PIT、coring）檢查樁身有冇缺陷；load test（static 或 dynamic / PDA）驗證承載力同沉降。兩樣唔可以互相代替。", "mcq_v2"],
+  ["mcq", "鋼結構安裝期間點樣保證穩定？", "永久 bracing、core 或 slab diaphragm 未完成之前要有 temporary bracing，按 erection sequence 逐階段檢查。", "mcq_v2"],
+  ["mcq", "Vierendeel truss 適合咩情況？代價係乜？", "Transfer 層需要開口（例如走廊、門口）、唔可以有斜桿嗰陣用。靠 rigid joint 嘅 bending 傳力，效率比 triangulated truss 低，構件要大啲。", "gb_v32"],
+  ["mcq", "Flat slab punching shear 要喺邊度 check？", "Column face（最大 shear stress）同 1.5d 嘅 basic control perimeter；唔夠就再向外 check，或者加 shear reinforcement、drop panel、column head。", "mcq_v1"],
+  ["mcq", "Transfer structure 嘅 load path 題通常考乜？", "上面柱荷載點樣經 transfer beam / plate 落去下面柱；transfer 層要承受 punching 同大 shear，上下柱唔對位會令 transfer 構件同 diaphragm 受力增加。", "gb_v32"],
 ];
 
 /* ---------- helpers ---------- */
@@ -876,7 +1111,7 @@ function renderReading() {
   }
 }
 
-const FC_TOPICS = [["all", "全部"], ["exam", "考試"], ["load", "Loading"], ["steel", "Steel"], ["fdn", "Foundation"], ["wind", "Wind"], ["code", "Code 版本"]];
+const FC_TOPICS = [["all", "全部"], ["exam", "考試"], ["mcq", "MCQ"], ["load", "Loading"], ["steel", "Steel"], ["fdn", "Foundation"], ["wind", "Wind"], ["code", "Code 版本"]];
 let fc = 0, fcBack = false, fcTopic = "all";
 const fcDeck = () => CARDS.filter((c) => fcTopic === "all" || c[0] === fcTopic);
 function renderFcFilter() {
@@ -899,6 +1134,121 @@ function renderCard() {
   $("fcFace").textContent = fcBack ? a : q;
   $("fcSrc").textContent = fcBack && src ? "出處：" + LIB[src].t : "";
   $("fcCount").textContent = (fc + 1) + " / " + deck.length;
+}
+
+const PP_FILTERS = [["all", "全部"], ["bridge", "Bridge"], ["building", "Building"], ["aa", "A&A"], ["special", "特殊"], ["sol", "有參考答案"]];
+const ppDur = (y) => y <= 2010 ? "5 小時" : y <= 2023 ? "6 小時" : "6.5 小時";
+let ppFilter = "all", ppAll = false;
+function renderPastStats() {
+  const years = [...new Set(PAST.map((q) => q[0]))];
+  const bYears = years.filter((y) => PAST.some((q) => q[0] === y && q[3] === "bridge"));
+  const aa = [...new Set(PAST.filter((q) => q[3] === "aa").map((q) => q[0]))].sort();
+  const tiles = [
+    [bYears.length + " / " + years.length, "年都有 bridge 題（SDM）"],
+    [String(PAST.length), "條題目，平均每年 " + (PAST.length / years.length).toFixed(1) + " 條"],
+    [aa.join("、"), "出過 A&A 題"],
+    [String(PAST.filter((q) => q[5]).length), "條有參考答案"],
+  ];
+  const box = $("ppStats");
+  for (const [b, t] of tiles) {
+    const d = document.createElement("div");
+    d.className = "counter";
+    const bb = document.createElement("b");
+    bb.textContent = b;
+    const sp = document.createElement("span");
+    sp.textContent = t;
+    d.append(bb, sp);
+    box.appendChild(d);
+  }
+}
+function renderPast() {
+  const fb = $("ppFilter");
+  fb.textContent = "";
+  for (const [k, label] of PP_FILTERS) {
+    const n = PAST.filter((q) => k === "all" || (k === "sol" ? q[5] : q[3] === k)).length;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label + " " + n;
+    b.setAttribute("aria-pressed", String(k === ppFilter));
+    b.onclick = () => { ppFilter = k; renderPast(); };
+    fb.appendChild(b);
+  }
+  const box = $("ppList");
+  box.textContent = "";
+  const years = [...new Set(PAST.map((q) => q[0]))].filter((y) => ppAll || y >= 2018);
+  for (const y of years) {
+    const qs = PAST.filter((q) => q[0] === y && (ppFilter === "all" || (ppFilter === "sol" ? q[5] : q[3] === ppFilter)));
+    if (!qs.length) continue;
+    const row = document.createElement("div");
+    row.className = "pprow";
+    const yc = document.createElement("div");
+    yc.className = "ppyear";
+    yc.appendChild(docLink("pp" + y, String(y)));
+    const meta = document.createElement("span");
+    meta.className = "meta";
+    meta.appendChild(document.createTextNode(ppDur(y)));
+    for (const w of weeksUsing("pp" + y)) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "wchip";
+      b.textContent = "W" + w;
+      b.onclick = () => { selectWeek(w); window.scrollTo({ top: 0, behavior: "smooth" }); };
+      meta.appendChild(b);
+    }
+    yc.appendChild(meta);
+    const grid = document.createElement("div");
+    grid.className = "ppqs";
+    for (const [, n, title, type, key, sol] of qs) {
+      const c = document.createElement("div");
+      c.className = "pq " + type;
+      const top = document.createElement("div");
+      top.className = "top";
+      const qn = document.createElement("span");
+      qn.className = "qn";
+      qn.textContent = "Q" + n;
+      const ty = document.createElement("span");
+      ty.className = "ty";
+      ty.textContent = PTYPE[type];
+      top.append(qn, ty);
+      const tt = document.createElement("span");
+      tt.className = "tt";
+      tt.textContent = title;
+      c.append(top, tt);
+      if (key) {
+        const kp = document.createElement("span");
+        kp.className = "kp";
+        kp.textContent = key;
+        c.appendChild(kp);
+      }
+      if (sol) {
+        const a = docLink(sol, "參考答案");
+        a.className = "sol";
+        c.appendChild(a);
+      }
+      grid.appendChild(c);
+    }
+    row.append(yc, grid);
+    box.appendChild(row);
+  }
+  $("ppMore").textContent = ppAll ? "只顯示 2018 之後" : "顯示 2009–2017";
+}
+function renderScore() {
+  const box = $("scList");
+  for (const blk of SCORE) {
+    const d = document.createElement("div");
+    d.className = "scblock" + (blk.h.includes("FAIL") ? " fail" : "");
+    const h = document.createElement("h3");
+    h.appendChild(document.createTextNode(blk.h));
+    h.appendChild(docLink(blk.src, "來源"));
+    const ul = document.createElement("ul");
+    for (const t of blk.items) {
+      const li = document.createElement("li");
+      li.textContent = t;
+      ul.appendChild(li);
+    }
+    d.append(h, ul);
+    box.appendChild(d);
+  }
 }
 
 function renderAll() { renderCounters(); renderWeek(); renderStrip(); renderPhases(); }
@@ -1109,6 +1459,8 @@ $("fcNext").onclick = () => { fc = (fc + 1) % fcDeck().length; fcBack = false; r
 $("driveRoot").href = DRIVE_ROOT;
 
 renderAll(); renderMilestones(); renderCodes(); renderLibrary(); renderExaminer(); renderFcFilter(); renderCard();
+renderScore(); renderPastStats(); renderPast();
+$("ppMore").onclick = () => { ppAll = !ppAll; renderPast(); };
 if (window.claude && claude.use) { initDb(); initSample(); }
 else { $("dbBanner").hidden = false; $("saveBtn").disabled = true; $("genBtn").hidden = true; }
 </script>
